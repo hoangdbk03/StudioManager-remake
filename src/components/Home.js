@@ -21,7 +21,7 @@ import React, {
 } from "react";
 import { AppConText } from "../util/AppContext";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
-import Client from "../components/Client";
+import Client from "./ManagerClient";
 import Bill from "../components/Bill";
 import { vi } from "date-fns/locale";
 import "intl";

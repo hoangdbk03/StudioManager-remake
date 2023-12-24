@@ -24,7 +24,7 @@ const FloatingButton = () => {
       icon={open ? "close" : "plus"}
       actions={[
         {
-          icon: require("../icons/list.png"),
+          icon: require("../icons/woman.png"),
           label: "Quản lý trang phục",
           onPress: () => navigation.navigate('ManagerSkin'),
           labelTextColor: "white",

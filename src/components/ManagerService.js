@@ -151,6 +151,8 @@ const ManagerService = () => {
         return;
       }
 
+      console.log("đây", formData);
+
       await AxiosIntance().post("/service/create/", formData, {
         headers: {
           "Content-Type": "multipart/form-data",

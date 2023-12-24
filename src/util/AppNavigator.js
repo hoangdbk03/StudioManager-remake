@@ -12,25 +12,18 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import SplashScreen from "../components/SplashScreen";
 import Login from "../components/Login";
 import Home from "../components/Home";
-import Job from "../components/Job";
-import Cart from "../components/Cart";
+import Contract from "../components/Contract";
 import Profile from "../components/Profile";
 import { AppConText } from "./AppContext";
 import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
 import Octicons from "react-native-vector-icons/Octicons";
-import AntDesign from "react-native-vector-icons/AntDesign";
-import Feather from "react-native-vector-icons/Feather";
 import ManagerSkin from "../components/ManagerSkin";
 import Register from "../components/Register";
 import ManagerStaff from "../components/ManagerStaff";
 import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
-import FloatingButton from "../items/FloatingButton";
 import DetailStaff from "../components/DetailStaff";
 import ManagerService from "../components/ManagerService";
-import { useEffect } from "react";
-import AxiosIntance from "./AxiosIntance";
-import Client from "../components/Client";
-import { useNavigation } from "@react-navigation/native";
+import ManagerClient from "../components/ManagerClient";
 import DetailUser from "../components/DetailUser";
 import Statistical from "../components/Statistical";
 import ForgotPassword from "../components/ForgotPassword";
@@ -53,7 +46,7 @@ const Users = () => {
           headerShown: true,
           title: "Gửi lại mật khẩu",
           headerBackTitle: "Quay lại",
-          presentation: 'modal'
+          presentation: "modal",
         }}
       />
     </Stack.Navigator>
@@ -103,58 +96,43 @@ const Main = () => {
       ></Tab.Screen>
 
       <Tab.Screen
-        name="Job"
-        component={Job}
+        name="ManagerClient"
+        component={ManagerClient}
         options={({ route }) => ({
-          title: "Công việc",
-          tabBarIcon: ({ focused, color, size }) => {
-            let iconName;
-            if (route.name == "Job") {
-              iconName = focused ? "profile" : "profile";
-            }
-            return <AntDesign name={iconName} size={size} color={color} />;
+          title: "Khách hàng",
+          tabBarIcon: ({ focused, color }) => {
+            let iconImage = focused
+              ? require("../icons/client.png")
+              : require("../icons/client.png");
+            return (
+              <Image
+                source={iconImage}
+                style={{ width: 28, height: 28, tintColor: color }}
+              />
+            );
           },
           tabBarActiveTintColor: "#0E55A7",
         })}
       ></Tab.Screen>
-
-      {inforUser.role !== "Nhân viên" ? (
-        <Tab.Screen
-          name="Cart"
-          component={Cart}
-          options={({ route }) => ({
-            title: "Đơn hàng",
-            tabBarIcon: ({ focused, color }) => {
-              let iconName;
-              if (route.name == "Cart") {
-                iconName = focused ? "shopping-cart" : "shopping-cart";
-              }
-              return <Feather name={iconName} size={23} color={color} />;
-            },
-            tabBarActiveTintColor: "#0E55A7",
-          })}
-        ></Tab.Screen>
-      ) : (
-        <Tab.Screen
-          name="Client"
-          component={Client}
-          options={({ route }) => ({
-            title: "Khách hàng",
-            tabBarIcon: ({ focused, color }) => {
-              let iconImage = focused
-                ? require("../icons/client.png")
-                : require("../icons/client.png");
-              return (
-                <Image
-                  source={iconImage}
-                  style={{ width: 28, height: 28, tintColor: color }}
-                />
-              );
-            },
-            tabBarActiveTintColor: "#0E55A7",
-          })}
-        ></Tab.Screen>
-      )}
+      <Tab.Screen
+        name="Contract"
+        component={Contract}
+        options={({ route }) => ({
+          title: "Hợp đồng",
+          tabBarIcon: ({ focused, color }) => {
+            let iconImage = focused
+              ? require("../icons/contract.png")
+              : require("../icons/contract.png");
+            return (
+              <Image
+                source={iconImage}
+                style={{ width: 22, height: 22, tintColor: color }}
+              />
+            );
+          },
+          tabBarActiveTintColor: "#0E55A7",
+        })}
+      ></Tab.Screen>
       <Tab.Screen
         name="PageProfile"
         component={PageProfile}
@@ -320,8 +298,7 @@ const styles = StyleSheet.create({
     left: 10,
     right: 10,
     borderRadius: 15,
-    height: Platform.OS === 'ios' ? 73 : 70,
-    
+    height: Platform.OS === "ios" ? 73 : 70,
   },
   tabIcon: {
     justifyContent: "center",
