@@ -13,14 +13,12 @@ import AxiosIntance from "../util/AxiosIntance";
 import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { useNavigation } from "@react-navigation/native";
+import FontAwesome from "react-native-vector-icons/FontAwesome";
 
 const ItemListService = (props) => {
-  const { item, onAddToCart, onRemoveFromCart, onEdit, onDelete, onModal } =
-    props;
-  const [isAddToCartVisible, setAddToCartVisible] = useState(true);
-  const [initialAddToCartVisible, setInitialAddToCartVisible] = useState(true);
+  const { item, onEdit, onDelete, onModal } = props;
+  
   const { inforUser } = useContext(AppConText);
-  const [inCart, setInCart] = useState(false);
   const navigation = useNavigation();
 
   const formatPrice = (price) => {
@@ -29,24 +27,6 @@ const ItemListService = (props) => {
       currency: "VND",
     }).format(price);
     return formattedPrice.replace(/\s₫/, "");
-  };
-
-  const idAddCart = {
-    userID: inforUser._id,
-    serviceID: item._id,
-  };
-
-  const deleteToCart = async () => {
-    await AxiosIntance().delete("/cart/removeServiceFromCart/", {
-      data: idAddCart,
-    });
-    Toast.show({
-      type: "success",
-      text1: "Đã xóa khỏi giỏ hàng",
-    });
-    onRemoveFromCart();
-    setAddToCartVisible(true);
-    setInitialAddToCartVisible(true);
   };
 
   const handleEditService = () => {
@@ -60,15 +40,6 @@ const ItemListService = (props) => {
     }
   };
 
-  useEffect(() => {
-    // Set the initial button visibility when the component mounts
-    setInitialAddToCartVisible(true);
-  }, []);
-
-  useEffect(() => {
-    // Reset the button visibility when 'item' changes
-    setAddToCartVisible(initialAddToCartVisible);
-  }, [item, initialAddToCartVisible]);
 
   return (
     <View style={styles.container}>

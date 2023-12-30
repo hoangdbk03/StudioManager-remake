@@ -151,8 +151,6 @@ const ManagerService = () => {
         return;
       }
 
-      console.log("đây", formData);
-
       await AxiosIntance().post("/service/create/", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
@@ -197,8 +195,6 @@ const ManagerService = () => {
         Alert.alert("Thông báo", "Vui lòng nhập đầy đủ thông tin!");
         return;
       }
-
-      console.log(formData);
 
       await AxiosIntance().put(
         `/service/update/${selectedItem._id}`,
@@ -342,13 +338,14 @@ const ManagerService = () => {
           />
 
           <TextInput
-            style={[styleModal.textInput, { height: 150 }]}
+            style={styleModal.textInput}
             onChangeText={(text) =>
               setDataAdd({ ...dataAdd, description: text })
             }
             mode="outlined"
-            label="Mô tả"
+            label="Mô tả..."
             multiline={true}
+            numberOfLines={6}
           />
 
           <View style={styleModal.buttonModal}>
@@ -399,14 +396,15 @@ const ManagerService = () => {
           />
 
           <TextInput
-            style={[styleModal.textInput, { height: 150, marginBottom: 10 }]}
+            style={[styleModal.textInput, {marginBottom: 10 }]}
             value={dataEdit.description}
             onChangeText={(text) =>
               setDataEdit({ ...dataEdit, description: text })
             }
             mode="outlined"
-            label="Mô tả"
+            label="Mô tả..."
             multiline={true}
+            numberOfLines={6}
           />
 
           <View style={styleModal.buttonModal}>
@@ -461,13 +459,14 @@ const ManagerService = () => {
               <TextInput
                 style={[
                   styleModal.textInput,
-                  { height: 150, marginBottom: 10 },
+                  { marginBottom: 10 },
                 ]}
                 value={selectedItemForModal.description}
                 editable={false}
                 mode="outlined"
-                label="Mô tả"
+                label="Mô tả..."
                 multiline={true}
+                numberOfLines={6}
               />
             </>
           )}
@@ -518,30 +517,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "white",
   },
-  floatingCart: {
-    position: "absolute",
-    bottom: 120,
-    right: 20,
-    backgroundColor: "#0E55A7",
-    padding: 10,
-    borderRadius: 100,
-    flexDirection: "row",
-    alignItems: "center",
-    width: 56,
-    height: 56,
-  },
-  badge: {
-    position: "absolute",
-    top: -1,
-    right: -2,
-    backgroundColor: "red",
-  },
   floatingAdd: {
     position: "absolute",
     bottom: 100,
     right: 20,
     alignItems: "center",
-    borderRadius: 100,
+    borderRadius: 18,
     justifyContent: "center",
     width: 56,
     height: 56,

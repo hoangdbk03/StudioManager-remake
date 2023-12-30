@@ -406,7 +406,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#0E55A7",
-    borderRadius: 10,
+    borderRadius: 18,
     elevation: 8,
   },
   dropdown: {
