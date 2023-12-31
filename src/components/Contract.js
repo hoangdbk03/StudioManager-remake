@@ -19,14 +19,43 @@ import AntDesign from "react-native-vector-icons/AntDesign";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { format } from "date-fns";
 import { useFocusEffect } from "@react-navigation/native";
+import Toast from "react-native-toast-message";
 
 const Contract = () => {
   const { inforUser } = useContext(AppConText);
   const [isModalCreateVisible, setModalCreateVisible] = useState(false);
+  const [isWorkDatePickerVisible, setWorkDatePickerVisible] = useState(false);
+  const [isDeliveryDatePickerVisible, setDeliveryDatePickerVisible] =
+    useState(false);
+  const [workDate, setWorkDate] = useState("");
+  const [deliveryDate, setDeliveryDate] = useState("");
+
+  // * Ngày hẹn chụp
+  const showWorkDatePicker = () => {
+    setWorkDatePickerVisible(true);
+  };
+  const hideWorkDatePicker = () => {
+    setWorkDatePickerVisible(false);
+  };
+  const handleWorkDateConfirm = (date) => {
+    setWorkDate(format(date, "HH:mm dd/MM/yyyy"));
+    hideWorkDatePicker();
+  };
+
+  // * Ngày trả ảnh
+  const showDeliveryDate = () => {
+    setDeliveryDatePickerVisible(true);
+  };
+  const hideDeliveryDate = () => {
+    setDeliveryDatePickerVisible(false);
+  };
+  const handleDeliveryDateConfirm = (date) => {
+    setDeliveryDate(format(date, "dd/MM/yyyy"));
+    hideDeliveryDate();
+  };
 
   // * data tạo hợp đồng
   const [data, setData] = useState({
-    userId: inforUser._id,
     discount: "",
     prepayment: "",
     location: "",
@@ -50,10 +79,81 @@ const Contract = () => {
   const [selectedOutfit, setSelectedOutfit] = useState([]);
   const [dataOutfitSelected, setDataOutfitSelected] = useState([]);
   const [showOutfitInfo, setShowOutfitInfo] = useState(false);
+  const [rentalDate, setRentalDate] = useState("");
+  const [returnDate, setReturnDate] = useState("");
+  const [description, setDescription] = useState("");
+  const [isInfoModalVisible, setInfoModalVisible] = useState(false);
+  const [selectedOutfitId, setSelectedOutfitId] = useState(null);
+  const [isRentalDatePickerVisible, setRentalDatePickerVisible] =
+    useState(false);
+  const [isReturnDatePickerVisible, setReturnDatePickerVisible] =
+    useState(false);
+
+  // * mở modal chọn ngày thuê và trả
+  const showRentalDatePicker = () => {
+    setRentalDatePickerVisible(true);
+  };
+  const hideRentalDatePicker = () => {
+    setRentalDatePickerVisible(false);
+  };
+
+  // * mở lịch chọn ngày thuê và trả
+  const showReturnDatePicker = () => {
+    setReturnDatePickerVisible(true);
+  };
+  const hideReturnDatePicker = () => {
+    setReturnDatePickerVisible(false);
+  };
+
+  // * xác nhận
+  const handleRentalDateConfirm = (date) => {
+    setRentalDate(format(date, "dd/MM/yyyy"));
+    hideRentalDatePicker();
+  };
+  const handleReturnDateConfirm = (date) => {
+    setReturnDate(format(date, "dd/MM/yyyy"));
+    hideReturnDatePicker();
+  };
+
+  const openInfoModal = (outfitId) => {
+    setSelectedOutfitId(outfitId);
+    setInfoModalVisible(true);
+    setRentalDate(null);
+    setReturnDate(null);
+    setDescription("");
+  };
+
+  const closeInfoModal = () => {
+    setInfoModalVisible(false);
+  };
+
+  const confirmInfoModal = () => {
+    if (!rentalDate || !returnDate) {
+      Alert.alert("Thông báo", "Vui lòng chọn ngày thuê và ngày trả!");
+      return;
+    }
+    const updatedDataOutfitSelected = dataOutfitSelected.map((outfit) =>
+      outfit._id === selectedOutfitId
+        ? {
+            ...outfit,
+            rentalDate,
+            returnDate,
+            description,
+          }
+        : outfit
+    );
+
+    setDataOutfitSelected(updatedDataOutfitSelected);
+    closeInfoModal();
+  };
 
   const toggleModalCreate = () => {
     setModalCreateVisible(!isModalCreateVisible);
     setDataClientSelected();
+
+    setData({
+      prepayment: "",
+    });
 
     // reset dịch vụ
     setSelectedServices([]);
@@ -62,6 +162,10 @@ const Contract = () => {
     // reset trang phục
     setSelectedOutfit([]);
     setDataOutfitSelected([]);
+
+    // reset ngày
+    setWorkDate("");
+    setDeliveryDate("");
   };
 
   // * định dạng lại tiền việt
@@ -195,7 +299,56 @@ const Contract = () => {
     return formatCurrency(totalPrice);
   };
 
-  const handleCreateContract = async () => {};
+  const handleCreateContract = async () => {
+    if (
+      !selectedClient ||
+      !selectedServices ||
+      !workDate ||
+      !deliveryDate ||
+      !dataOutfitSelected
+    ) {
+      Alert.alert("Thông báo", "Vui lòng nhập đầy đủ thông tin!");
+      return;
+    }
+
+    const outfitData = dataOutfitSelected.map((outfit) => ({
+      weddingOutfitId: outfit._id,
+      rentalDate: outfit.rentalDate,
+      returnDate: outfit.returnDate,
+      description: outfit.description,
+    }));
+    const serviceData = selectedServices.map((service) => ({
+      serviceId: service,
+    }));
+    const dataCreateContract = {
+      userId: inforUser._id,
+      clientId: selectedClient,
+      services: serviceData,
+      weddingOutfit: outfitData,
+      workDate: workDate,
+      deliveryDate: deliveryDate,
+      note: data.note || "",
+      location: data.location,
+      discount: data.discount,
+      prepayment: data.prepayment,
+    };
+
+    try {
+      await AxiosIntance().post("/contract/create/", dataCreateContract);
+      Toast.show({
+        type: "success",
+        text1: "Tạo hợp đồng thành công",
+      });
+      toggleModalCreate();
+    } catch (error) {
+      toggleModalCreate();
+      Toast.show({
+        type: "error",
+        text1: "Tạo hợp đồng thất bại",
+      });
+      console.log("Lỗi tạo hợp đồng", error);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -319,6 +472,7 @@ const Contract = () => {
                     ...prevData,
                     item.value,
                   ]);
+                  openInfoModal(item.value._id);
                   setShowOutfitInfo(true);
                 }
               }}
@@ -349,6 +503,70 @@ const Contract = () => {
               }}
               itemTextStyle={{ fontWeight: "400", color: "#062446" }}
             />
+
+            <Modal isVisible={isInfoModalVisible}>
+              <View style={{ backgroundColor: "white", padding: 10 }}>
+                {/* Thông tin ngày thuê, ngày trả, mô tả */}
+                <TextInput
+                  label="Ngày thuê"
+                  mode="outlined"
+                  style={{ marginTop: 10 }}
+                  placeholder="dd/MM/yyyy"
+                  value={rentalDate}
+                  onPressIn={showRentalDatePicker}
+                />
+
+                <TextInput
+                  label="Ngày trả"
+                  mode="outlined"
+                  style={{ marginTop: 10 }}
+                  placeholder="dd/MM/yyyy"
+                  value={returnDate}
+                  onPressIn={showReturnDatePicker}
+                />
+
+                <TextInput
+                  label="Mô tả"
+                  mode="outlined"
+                  style={{ marginTop: 10 }}
+                  multiline={true}
+                  numberOfLines={6}
+                  value={description}
+                  onChangeText={(text) => setDescription(text)}
+                />
+
+                {/* Lịch chọn ngày thuê và trả */}
+                <DateTimePickerModal
+                  isVisible={isRentalDatePickerVisible}
+                  mode="date"
+                  onConfirm={handleRentalDateConfirm}
+                  onCancel={hideRentalDatePicker}
+                />
+
+                <DateTimePickerModal
+                  isVisible={isReturnDatePickerVisible}
+                  mode="date"
+                  onConfirm={handleReturnDateConfirm}
+                  onCancel={hideReturnDatePicker}
+                />
+
+                {/* Nút xác nhận và đóng modal */}
+                <TouchableOpacity
+                  onPress={confirmInfoModal}
+                  style={{
+                    backgroundColor: "#0E55A7",
+                    padding: 10,
+                    borderRadius: 5,
+                    marginTop: 10,
+                    alignItems: "center",
+                  }}
+                >
+                  <Text style={{ color: "white", fontWeight: "bold" }}>
+                    Xác nhận
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </Modal>
 
             {/* Tất cả thông tin đã chọn khách hàng, dịch vụ, trang phục*/}
             {/* Thông tin khách hàng đã chọn*/}
@@ -462,6 +680,20 @@ const Contract = () => {
                           {formatCurrency(outfit.price)}
                         </Text>
                       </View>
+                      <View style={styles.infoRow}>
+                        <Text style={styles.infoLabel}>Ngày thuê:</Text>
+                        <Text style={styles.infoText}>{outfit.rentalDate}</Text>
+                      </View>
+                      <View style={styles.infoRow}>
+                        <Text style={styles.infoLabel}>Ngày trả:</Text>
+                        <Text style={styles.infoText}>{outfit.returnDate}</Text>
+                      </View>
+                      <View style={styles.infoRow}>
+                        <Text style={styles.infoLabel}>Mô tả:</Text>
+                        <Text style={styles.infoText}>
+                          {outfit.description}
+                        </Text>
+                      </View>
                     </View>
                     <TouchableOpacity
                       onPress={() => removeSelectedOutfit(outfit._id)}
@@ -508,16 +740,30 @@ const Contract = () => {
               label="Ngày hẹn chụp"
               mode="outlined"
               style={{ marginTop: 10 }}
-              // onPressIn={toggleDatePicker}
-              placeholder="00:00 dd-MM-yyyy"
+              onPressIn={showWorkDatePicker}
+              placeholder="HH:mm dd/MM/yyyy"
+              value={workDate}
+            />
+            <DateTimePickerModal
+              isVisible={isWorkDatePickerVisible}
+              mode="datetime"
+              onConfirm={handleWorkDateConfirm}
+              onCancel={hideWorkDatePicker}
             />
 
             <TextInput
               label="Ngày trả ảnh"
               mode="outlined"
               style={{ marginTop: 10 }}
-              // onPressIn={toggleDatePicker}
-              placeholder="dd-MM-yyyy"
+              onPressIn={showDeliveryDate}
+              placeholder="dd/MM/yyyy"
+              value={deliveryDate}
+            />
+            <DateTimePickerModal
+              isVisible={isDeliveryDatePickerVisible}
+              mode="date"
+              onConfirm={handleDeliveryDateConfirm}
+              onCancel={hideDeliveryDate}
             />
 
             <TextInput
