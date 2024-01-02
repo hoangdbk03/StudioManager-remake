@@ -66,6 +66,7 @@ const Contract = () => {
 
   // * Phần hợp đồng
   const [dataContract, setDataContract] = useState([]);
+  const [filterStatus, setFilterStatus] = useState("Tất cả");
 
   // * Phần của khách hàng
   const [dataClient, setDataClient] = useState([]);
@@ -376,10 +377,72 @@ const Contract = () => {
 
   return (
     <View style={styles.container}>
+      <View style={styles.filterContainer}>
+        <TouchableOpacity
+          style={[
+            styles.filterButton,
+            filterStatus === "Tất cả" && styles.activeFilterButton,
+          ]}
+          onPress={() => setFilterStatus("Tất cả")}
+        >
+          <Text
+            style={[
+              styles.filterButtonText,
+              filterStatus === "Tất cả" && styles.activeFilterButtonText,
+            ]}
+          >
+            Tất cả
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.filterButton,
+            filterStatus === "Chưa thanh toán" && styles.activeFilterButton2,
+          ]}
+          onPress={() => setFilterStatus("Chưa thanh toán")}
+        >
+          <Text
+            style={[
+              styles.filterButtonText,
+              filterStatus === "Chưa thanh toán" &&
+                styles.activeFilterButtonText,
+            ]}
+          >
+            Chưa thanh toán
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.filterButton,
+            filterStatus === "Đã thanh toán" && styles.activeFilterButton3,
+          ]}
+          onPress={() => setFilterStatus("Đã thanh toán")}
+        >
+          <Text
+            style={[
+              styles.filterButtonText,
+              filterStatus === "Đã thanh toán" && styles.activeFilterButtonText,
+            ]}
+          >
+            Đã thanh toán
+          </Text>
+        </TouchableOpacity>
+      </View>
+
       {/* Danh sách hợp đồng */}
       <FlatList
-        style={{ backgroundColor: "white", marginBottom: "21%"}}
-        data={dataContract}
+        style={{ backgroundColor: "white", marginBottom: "21%" }}
+        data={
+          filterStatus === "Tất cả"
+            ? dataContract
+            : dataContract.filter(
+                (item) =>
+                  (filterStatus === "Chưa thanh toán" &&
+                    item.status === "Chưa thanh toán") ||
+                  (filterStatus === "Đã thanh toán" &&
+                    item.status === "Đã thanh toán")
+              )
+        }
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => <ItemListContract item={item} />}
       />
@@ -941,5 +1004,32 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginTop: 12,
     alignSelf: "flex-end",
+  },
+  filterContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginVertical: 10,
+  },
+  filterButton: {
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 5,
+    marginHorizontal: 5,
+    backgroundColor: "#E0E0E0",
+  },
+  activeFilterButton: {
+    backgroundColor: "#0E55A7",
+  },
+  activeFilterButton2: {
+    backgroundColor: "#db9200",
+  },
+  activeFilterButton3: {
+    backgroundColor: "#4CAF50",
+  },
+  filterButtonText: {
+    color: "#333",
+  },
+  activeFilterButtonText: {
+    color: "#fff",
   },
 });

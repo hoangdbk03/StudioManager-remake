@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -14,14 +14,76 @@ import MapView, { Marker } from "react-native-maps";
 import { Table, Row, Rows } from "react-native-table-component";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
+import { TextInput } from "react-native-paper";
+import { AppConText } from "../util/AppContext";
+import { useEffect } from "react";
+import { styleModal } from "../style/styleModal";
 
 const ItemListContract = (props) => {
   const { item } = props;
+  const { inforUser } = useContext(AppConText);
 
   const [isVisibleModalDetails, setVisibleModalDetails] = useState(false);
+  const [isVisibleModalUpdates, setVisibleModalUpdates] = useState(false);
+
+  // * Phần cập nhật
+  const [editedAdditionalCosts, setEditedAdditionalCosts] = useState([
+    {
+      userId: inforUser._id,
+      description: "",
+      price: "",
+    },
+  ]);
+  const [editedPrepayment, setEditedPrepayment] = useState("");
+  const [editedPriceTotal, setEditedPriceTotal] = useState("");
+
+  const handleDescriptionChange = (text, index) => {
+    const newAdditionalCosts = [...editedAdditionalCosts];
+    newAdditionalCosts[index].description = text;
+    setEditedAdditionalCosts(newAdditionalCosts);
+  };
+
+  const handlePriceChange = (text, index) => {
+    const newAdditionalCosts = [...editedAdditionalCosts];
+    newAdditionalCosts[index].price = text;
+    setEditedAdditionalCosts(newAdditionalCosts);
+  };
+
+  const removeAdditionalCost = (index) => {
+    const newAdditionalCosts = [...editedAdditionalCosts];
+    newAdditionalCosts.splice(index, 1);
+    setEditedAdditionalCosts(newAdditionalCosts);
+  };
+
+  const addAdditionalCost = () => {
+    setEditedAdditionalCosts([
+      ...editedAdditionalCosts,
+      {
+        description: "",
+        price: "",
+      },
+    ]);
+  };
+
+  useEffect(() => {
+    if (isVisibleModalDetails) {
+      setEditedPrepayment("");
+      setEditedAdditionalCosts([
+        {
+          description: "",
+          price: "",
+        },
+      ]);
+      setEditedPriceTotal("");
+    }
+  }, [isVisibleModalDetails]);
 
   const toggleModal = () => {
     setVisibleModalDetails(!isVisibleModalDetails);
+  };
+
+  const toggleModalUpdate = () => {
+    setVisibleModalUpdates(!isVisibleModalUpdates);
   };
 
   const dateTimeString = item ? item.signingDate : null;
@@ -231,7 +293,7 @@ const ItemListContract = (props) => {
           alignItems: "center",
         }}
       >
-        <TouchableOpacity style={styles.editButton}>
+        <TouchableOpacity style={styles.editButton} onPress={toggleModalUpdate}>
           <Text style={styles.editButtonText}>Chỉnh sửa</Text>
           <AntDesign
             style={{ marginTop: 1 }}
@@ -465,13 +527,109 @@ const ItemListContract = (props) => {
             style={{ marginTop: 1 }}
             name="picture-as-pdf"
             size={18}
-            color={"#4285f4"}
+            color={"red"}
           />
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.closeButton} onPress={toggleModal}>
           <Text style={styles.closeButtonText}>Đóng</Text>
         </TouchableOpacity>
+      </Modal>
+
+      {/* Modal chỉnh sửa hợp đồng*/}
+      <Modal isVisible={isVisibleModalUpdates}>
+        <View style={styles.modalContainer2}>
+          <View style={{ padding: 10 }}>
+            <Text
+              style={{
+                color: "#0e55a7",
+                fontSize: 18,
+                fontWeight: "bold",
+                textAlign: "center",
+                marginBottom: 10,
+              }}
+            >
+              Chỉnh sửa hợp đồng
+            </Text>
+
+            <ScrollView style={{height: 'auto', marginBottom: 10}}>
+              {editedAdditionalCosts.map((cost, index) => (
+                <View key={index}>
+                  <TextInput
+                    label={`Chi phí phát sinh ${index + 1}`}
+                    mode="outlined"
+                    value={cost.description}
+                    onChangeText={(text) =>
+                      handleDescriptionChange(text, index)
+                    }
+                  />
+                  <TextInput
+                    label={`Giá`}
+                    mode="outlined"
+                    value={cost.price}
+                    onChangeText={(text) => handlePriceChange(text, index)}
+                  />
+                  <TouchableOpacity
+                    style={{ marginBottom: 18, marginTop: 5 }}
+                    onPress={() => removeAdditionalCost(index)}
+                  >
+                    <Text
+                      style={{
+                        color: "red",
+                        fontWeight: "bold",
+                        alignSelf: "flex-end",
+                      }}
+                    >
+                      Xóa chi phí phát sinh {index + 1}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </ScrollView>
+
+            <TouchableOpacity
+              style={{
+                borderRadius: 5,
+                borderWidth: 1,
+                padding: 10,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+              onPress={addAdditionalCost}
+            >
+              <Text>Thêm chi phí phát sinh</Text>
+              <MaterialIcons name="add" size={20} />
+            </TouchableOpacity>
+
+            <Text style={{ fontWeight: "bold", padding: 10 }}>
+              Tổng tiền(Bao gồm chi phí phát sinh):{" "}
+              {formatCurrency(item.priceTotal)}
+            </Text>
+
+            <TextInput
+              label="Thanh toán tất cả"
+              value={editedPrepayment}
+              mode="outlined"
+              onChangeText={(text) => setEditedPrepayment(text)}
+            />
+          </View>
+
+          <View style={styleModal.buttonModal}>
+            <TouchableOpacity
+              onPress={toggleModalUpdate}
+              style={styleModal.button1}
+            >
+              <Text style={styleModal.textButton1}>Hủy</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              // onPress={updateService}
+              style={styleModal.button2}
+            >
+              <Text style={styleModal.textButton2}>Cập nhật</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </Modal>
     </View>
   );
@@ -544,10 +702,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderRadius: 8,
     padding: 15,
+    width: "100%",
+    alignSelf: 'center'
   },
   head: {
     height: 40,
-    backgroundColor: "#f1f8ff",
+    backgroundColor: "#e7eef6",
   },
   headText: {
     fontSize: 14,
@@ -560,7 +720,7 @@ const styles = StyleSheet.create({
     margin: 6,
   },
   closeButton: {
-    backgroundColor: "#4285f4",
+    backgroundColor: "#0e55a7",
     padding: 10,
     borderRadius: 5,
     marginTop: 15,
@@ -583,6 +743,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 10,
     textAlign: "center",
+    color: "#0e55a7",
   },
   exportButton: {
     flexDirection: "row",
@@ -596,5 +757,9 @@ const styles = StyleSheet.create({
   exportButtonText: {
     fontWeight: "bold",
     marginLeft: 5,
+  },
+  modalContainer2: {
+    backgroundColor: "white",
+    borderRadius: 6,
   },
 });
