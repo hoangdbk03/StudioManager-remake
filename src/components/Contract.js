@@ -1,5 +1,6 @@
 import {
   Alert,
+  FlatList,
   Image,
   ScrollView,
   StyleSheet,
@@ -20,6 +21,7 @@ import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { format } from "date-fns";
 import { useFocusEffect } from "@react-navigation/native";
 import Toast from "react-native-toast-message";
+import ItemListContract from "./ItemListContract";
 
 const Contract = () => {
   const { inforUser } = useContext(AppConText);
@@ -61,6 +63,9 @@ const Contract = () => {
     location: "",
     note: "",
   });
+
+  // * Phần hợp đồng
+  const [dataContract, setDataContract] = useState([]);
 
   // * Phần của khách hàng
   const [dataClient, setDataClient] = useState([]);
@@ -200,6 +205,16 @@ const Contract = () => {
   const isServiceSelected = (serviceId) => {
     return selectedServices.includes(serviceId);
   };
+  // TODO: lấy danh sách hợp đồng
+  const fetchDataContract = async () => {
+    try {
+      const response = await AxiosIntance().get("/contract/list/");
+      const apiData = response;
+      setDataContract(apiData);
+    } catch (error) {
+      console.log("Lỗi lấy danh sách hợp đồng");
+    }
+  };
 
   // * xóa dịch vụ được chọn
   const removeSelectedService = (serviceId) => {
@@ -269,6 +284,7 @@ const Contract = () => {
       fetchDataClient();
       fetchDataService();
       fetchDataOutfit();
+      fetchDataContract();
     }, [])
   );
 
@@ -296,10 +312,16 @@ const Contract = () => {
       }
     });
 
-    return formatCurrency(totalPrice);
+    // giảm giá theo %
+    const discount = parseFloat(data.discount) || 0;
+    const discountedTotal = totalPrice - (totalPrice * discount) / 100;
+
+    return discountedTotal;
   };
 
+  // TODO: xử lý api tạo hợp đồng
   const handleCreateContract = async () => {
+    const totalPrice = calculateTotalPrice();
     if (
       !selectedClient ||
       !selectedServices ||
@@ -331,10 +353,12 @@ const Contract = () => {
       location: data.location,
       discount: data.discount,
       prepayment: data.prepayment,
+      priceTotal: totalPrice,
     };
 
     try {
       await AxiosIntance().post("/contract/create/", dataCreateContract);
+      fetchDataContract();
       Toast.show({
         type: "success",
         text1: "Tạo hợp đồng thành công",
@@ -352,6 +376,14 @@ const Contract = () => {
 
   return (
     <View style={styles.container}>
+      {/* Danh sách hợp đồng */}
+      <FlatList
+        style={{ backgroundColor: "white", marginBottom: "21%"}}
+        data={dataContract}
+        keyExtractor={(item) => item._id}
+        renderItem={({ item }) => <ItemListContract item={item} />}
+      />
+
       {/* Floating button */}
       <TouchableOpacity
         activeOpacity={1}
@@ -712,7 +744,7 @@ const Contract = () => {
 
             {/* Tổng tiền */}
             <Text style={styles.totalPriceText}>
-              Tổng cộng: {calculateTotalPrice()}
+              Tổng cộng: {formatCurrency(calculateTotalPrice())}
             </Text>
 
             <TextInput
