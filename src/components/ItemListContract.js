@@ -18,6 +18,7 @@ import { TextInput } from "react-native-paper";
 import { AppConText } from "../util/AppContext";
 import { useEffect } from "react";
 import { styleModal } from "../style/styleModal";
+import moment from "moment";
 
 const ItemListContract = (props) => {
   const { item } = props;
@@ -100,6 +101,7 @@ const ItemListContract = (props) => {
     return formatter.format(amount);
   };
 
+  // xuất PDF cho khách hàng
   const exportPDF = async () => {
     try {
       const additionalCostsHTML =
@@ -233,10 +235,6 @@ const ItemListContract = (props) => {
     <tr>
       <td style="font-weight: bold; padding: 8px;">Trạng thái</td>
       <td style="padding: 8px;">${item.status}</td>
-    </tr>
-    <tr>
-      <td style="font-weight: bold; padding: 8px;">Cập nhật mới nhất</td>
-      <td style="padding: 8px;">04:48 02/01/2024</td>
     </tr>
   </table>
 
@@ -437,8 +435,8 @@ const ItemListContract = (props) => {
                     data={[
                       outfit.weddingOutfitId.name,
                       formatCurrency(outfit.weddingOutfitId.price),
-                      "01/01/2024", // Ngày mượn (cần cập nhật dữ liệu thực tế)
-                      "01/01/2024", // Ngày trả (cần cập nhật dữ liệu thực tế)
+                      moment(outfit.rentalDate).format("DD/MM/yyyy"),
+                      moment(outfit.returnDate).format("DD/MM/yyyy"),
                       outfit.description || "Không",
                     ]}
                     textStyle={{
@@ -493,11 +491,11 @@ const ItemListContract = (props) => {
                   ],
                   [
                     <Text style={styles.boldText}>Ngày hẹn chụp ảnh</Text>,
-                    "06:30 11/01/2024",
+                    moment(item.workDate).format("DD/MM/yyyy"),
                   ],
                   [
                     <Text style={styles.boldText}>Ngày trả ảnh</Text>,
-                    "15/01/2024",
+                    moment(item.deliveryDate).format("DD/MM/yyyy"),
                   ],
                   [
                     <Text style={styles.boldText}>Địa điểm làm việc</Text>,
@@ -513,7 +511,7 @@ const ItemListContract = (props) => {
                   ],
                   [
                     <Text style={styles.boldText}>Cập nhật mới nhất</Text>,
-                    "04:48 02/01/2024",
+                    moment(item.updatedAt).format("DD/MM/yyyy HH:mm"),
                   ],
                 ]}
                 textStyle={styles.text}
@@ -669,6 +667,7 @@ const styles = StyleSheet.create({
   },
   infoText: {
     color: "#333",
+    fontWeight: '500'
   },
   buttons: {
     flexDirection: "row",
@@ -684,6 +683,7 @@ const styles = StyleSheet.create({
     color: "#4285f4",
     fontWeight: "bold",
     marginLeft: 5,
+    fontSize: 12
   },
   editIcon: {
     marginTop: 1,
@@ -695,6 +695,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 4,
     marginTop: 10,
+    overflow: "hidden",
   },
   // Modal
   modalContainer: {

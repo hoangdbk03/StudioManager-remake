@@ -5,7 +5,7 @@ import { useNavigation } from "@react-navigation/native";
 import { AppConText } from "../util/AppContext";
 
 const FloatingButton = () => {
-  const {inforUser} = useContext(AppConText);
+  const { inforUser } = useContext(AppConText);
   const navigation = useNavigation();
   const [state, setState] = React.useState({ open: false });
 
@@ -24,37 +24,59 @@ const FloatingButton = () => {
       icon={open ? "close" : "plus"}
       actions={[
         {
-          icon: require("../icons/woman.png"),
-          label: "Quản lý trang phục",
-          onPress: () => navigation.navigate('ManagerSkin'),
-          labelTextColor: "white",
-          color: "white",
-          containerStyle: { backgroundColor: "#0E55A7" },
-          style: { backgroundColor: "#0E55A7"},
-
-          labelStyle: {fontSize: 13}
-        },
-        {
-          icon: require("../img/chart.png"),
-          label: "Thống kê",
-          onPress: () => navigation.navigate('Statistical'),
-          labelTextColor: "white",
-          color: "white",
-          containerStyle: { backgroundColor: "#0E55A7" },
-          style: { backgroundColor: "#0E55A7"},
-
-          labelStyle: {fontSize: 13}
-        },
-        {
-          icon: require("../icons/add-user.png"),
-          label: "Đăng ký người dùng",
-          onPress: () => navigation.navigate('Register'),
+          icon: require("../icons/suitcase.png"),
+          label: "Quản lý loại công việc",
+          onPress: () => navigation.navigate("TypeWork"),
           labelTextColor: "white",
           color: "white",
           containerStyle: { backgroundColor: "#0E55A7" },
           style: { backgroundColor: "#0E55A7" },
 
-          labelStyle: {fontSize: 13}
+          labelStyle: { fontSize: 13 },
+        },
+        {
+          icon: require("../icons/add-user.png"),
+          label: "Đăng ký người dùng",
+          onPress: () => navigation.navigate("Register"),
+          labelTextColor: "white",
+          color: "white",
+          containerStyle: { backgroundColor: "#0E55A7" },
+          style: { backgroundColor: "#0E55A7" },
+
+          labelStyle: { fontSize: 13 },
+        },
+        {
+          icon: require("../icons/client.png"),
+          label: "Quản lý khách hàng",
+          onPress: () => navigation.navigate("ManagerClient"),
+          labelTextColor: "white",
+          color: "white",
+          containerStyle: { backgroundColor: "#0E55A7" },
+          style: { backgroundColor: "#0E55A7" },
+
+          labelStyle: { fontSize: 13 },
+        },
+        {
+          icon: require("../icons/woman.png"),
+          label: "Quản lý trang phục",
+          onPress: () => navigation.navigate("ManagerSkin"),
+          labelTextColor: "white",
+          color: "white",
+          containerStyle: { backgroundColor: "#0E55A7" },
+          style: { backgroundColor: "#0E55A7" },
+
+          labelStyle: { fontSize: 13 },
+        },
+        {
+          icon: require("../img/chart.png"),
+          label: "Thống kê",
+          onPress: () => navigation.navigate("Statistical"),
+          labelTextColor: "white",
+          color: "white",
+          containerStyle: { backgroundColor: "#0E55A7" },
+          style: { backgroundColor: "#0E55A7" },
+
+          labelStyle: { fontSize: 13 },
         },
       ].filter(Boolean)}
       onStateChange={onStateChange}

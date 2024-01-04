@@ -22,6 +22,8 @@ import { format } from "date-fns";
 import { useFocusEffect } from "@react-navigation/native";
 import Toast from "react-native-toast-message";
 import ItemListContract from "./ItemListContract";
+import { IconButton, Searchbar } from "react-native-paper";
+import unorm from "unorm";
 
 const Contract = () => {
   const { inforUser } = useContext(AppConText);
@@ -67,6 +69,9 @@ const Contract = () => {
   // * Phần hợp đồng
   const [dataContract, setDataContract] = useState([]);
   const [filterStatus, setFilterStatus] = useState("Tất cả");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const onChangeSearch = (query) => setSearchQuery(query);
 
   // * Phần của khách hàng
   const [dataClient, setDataClient] = useState([]);
@@ -375,8 +380,37 @@ const Contract = () => {
     }
   };
 
+  // Chuẩn hóa chuỗi sang Unicode NFD
+  const normalizedSearchQuery = unorm.nfkd(searchQuery.toLowerCase());
+
+  // Lọc dữ liệu dựa trên chuỗi tìm kiếm đã được chuẩn hóa
+  const filteredData = dataContract.filter((item) => {
+    const normalizedDataName = unorm.nfkd(item.clientId.name.toLowerCase());
+    return normalizedDataName.includes(normalizedSearchQuery);
+  });
+
   return (
     <View style={styles.container}>
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          width: "100%",
+          padding: 10
+        }}
+      >
+        <Searchbar
+          placeholder="Tìm kiếm"
+          onChangeText={onChangeSearch}
+          value={searchQuery}
+          style={{ borderRadius: 10, width: "82%" }}
+          icon={() => <IconButton icon="calendar" />}
+        />
+        {/* Floating button */}
+        <TouchableOpacity style={styles.fab} onPress={toggleModalCreate}>
+          <MaterialIcons name="add" size={30} color="white" />
+        </TouchableOpacity>
+      </View>
       <View style={styles.filterContainer}>
         <TouchableOpacity
           style={[
@@ -434,7 +468,7 @@ const Contract = () => {
         style={{ backgroundColor: "white", marginBottom: "21%" }}
         data={
           filterStatus === "Tất cả"
-            ? dataContract
+            ? filteredData
             : dataContract.filter(
                 (item) =>
                   (filterStatus === "Chưa thanh toán" &&
@@ -446,15 +480,6 @@ const Contract = () => {
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => <ItemListContract item={item} />}
       />
-
-      {/* Floating button */}
-      <TouchableOpacity
-        activeOpacity={1}
-        style={styles.floatingAdd}
-        onPress={toggleModalCreate}
-      >
-        <MaterialIcons name="add" size={30} color="white" />
-      </TouchableOpacity>
 
       {/* Modal tạo hợp đồng */}
       <Modal isVisible={isModalCreateVisible}>
@@ -913,17 +938,7 @@ export default Contract;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  floatingAdd: {
-    position: "absolute",
-    bottom: 150,
-    right: 20,
-    alignItems: "center",
-    borderRadius: 18,
-    justifyContent: "center",
-    width: 56,
-    height: 56,
-    backgroundColor: "#0E55A7",
+    backgroundColor: 'white'
   },
   titleModal: {
     width: "100%",
@@ -1031,5 +1046,14 @@ const styles = StyleSheet.create({
   },
   activeFilterButtonText: {
     color: "#fff",
+  },
+  fab: {
+    width: 56,
+    height: 56,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#0E55A7",
+    borderRadius: 18,
+    elevation: 8,
   },
 });

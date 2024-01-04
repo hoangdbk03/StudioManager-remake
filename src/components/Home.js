@@ -1,4 +1,5 @@
 import {
+  Alert,
   Dimensions,
   FlatList,
   Image,
@@ -33,31 +34,16 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import Modal from "react-native-modal";
 import { List } from "react-native-paper";
 import AxiosIntance from "../util/AxiosIntance";
-import ItemListJob from "./ItemListJob";
-
-// * màu của từng trạng thái
-const statusColors = {
-  "Tất cả": "#0E55A7",
-  "Chưa thực hiện": "red",
-  "Đang thực hiện": "#b59700",
-  "Hoàn thành": "green",
-  "Đã hủy": "#b0b0b0",
-};
+import ItemListWorkByDate from "./ItemListWorkByDate";
+import ItemListWorkOfStaffByDate from "./ItemListWorkOfStaffByDate";
 
 const Home = () => {
   const navigation = useNavigation();
   const { inforUser } = useContext(AppConText);
   const [isModalVisible, setModalVisible] = useState(false);
-  const [dataUser, setDataUser] = useState([]);
-  const [dataListOrder, setDataListOrder] = useState([]);
 
-  // * lọc trạng thái
-  const [selectedStatus, setSelectedStatus] = useState("Tất cả");
-  const handleStatusFilter = (status) => {
-    setSelectedStatus(status);
-  };
-  // * lưu vị trí được chọn của trạng thái
-  const [selectedTabIndex, setSelectedTabIndex] = useState(0);
+  const [dataWorkByDate, setDataWorkByDate] = useState([]);
+  const [dataWorkOfStaffByDate, setDataWorkOfStaffByDate] = useState([]);
 
   // * hiển thị modal staff
   const toggleModal = () => {
@@ -85,7 +71,37 @@ const Home = () => {
   // * Lấy ngày hiện tại
   const today = new Date();
   const dayName = format(today, "EEEE", { locale: vi });
-  const dayOfMonth = format(today, "d MMMM yyyy", { locale: vi });
+  const dayOfMonth = format(today, "dd MMMM yyyy", { locale: vi });
+
+  const currentDate = new Date();
+  const dateNow = format(currentDate, "dd/MM/yyyy");
+
+  const fetchDataWorkByDate = async () => {
+    try {
+      const response = await AxiosIntance().get(
+        `/work/list-work?date=${dateNow}`
+      );
+      setDataWorkByDate(response);
+    } catch (error) {
+      // Alert.alert("Thông báo", "Hôm nay không có công việc nào");
+    }
+  };
+
+  const fetchDataWorkStaffByDate = async () => {
+    try {
+      const reponse = await AxiosIntance().get(
+        `/work/user-work/${inforUser._id}?date=${dateNow}`
+      );
+      setDataWorkOfStaffByDate(reponse);
+    } catch (error) {
+      // Alert.alert("Thông báo", "Hôm nay bạn không có công việc nào");
+    }
+  };
+
+  useEffect(() => {
+    fetchDataWorkByDate();
+    fetchDataWorkStaffByDate();
+  }, []);
 
   return (
     <SafeAreaProvider style={styles.container}>
@@ -116,6 +132,75 @@ const Home = () => {
             source={require("../img/logoHome.png")}
           />
         </View>
+      </View>
+
+      <View style={styles.body}>
+        <View style={{ marginTop: 40 }}>
+          <Text
+            style={{
+              color: "#0E55A7",
+              fontWeight: "bold",
+              padding: 10,
+              borderRadius: 6,
+              fontSize: 15,
+              // borderWidth: 2,
+              // borderColor: "#0E55A7",
+              elevation: 5,
+              backgroundColor: "white",
+              width: "93%",
+              alignSelf: "center",
+            }}
+          >
+            Công việc hôm nay
+          </Text>
+        </View>
+        {dataWorkByDate.length > 0 ? (
+          <View>
+            {inforUser.role === "Quản lý" ? (
+              <FlatList
+                style={styles.body_list}
+                data={dataWorkByDate}
+                keyExtractor={(item) => item._id}
+                renderItem={({ item }) => <ItemListWorkByDate item={item} />}
+              />
+            ) : (
+              <FlatList
+                data={dataWorkOfStaffByDate}
+                keyExtractor={(item) => item._id}
+                renderItem={({ item }) => (
+                  <ItemListWorkOfStaffByDate item={item} />
+                )}
+              />
+            )}
+          </View>
+        ) : (
+          <View
+            style={{
+              justifyContent: "center",
+              alignItems: "center",
+              marginTop: 100,
+            }}
+          >
+            <View
+              style={{
+                width: 150,
+                height: 150,
+                backgroundColor: "#e7eef6",
+                borderRadius: 300,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <Image
+                style={{ width: 60, height: 60, tintColor: "#b4cae4" }}
+                source={require("../img/taskList.png")}
+              />
+            </View>
+            <Text style={{ color: "#545454", marginTop: 10 }}>
+              Hôm nay chưa có công việc
+            </Text>
+          </View>
+        )}
       </View>
 
       {/* khung button nhân viên và gói chụp */}
@@ -185,7 +270,10 @@ const Home = () => {
                 )}
               />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.fontItemModal} onPress={handleNextSalary}>
+            <TouchableOpacity
+              style={styles.fontItemModal}
+              onPress={handleNextSalary}
+            >
               <List.Item
                 title="Lương"
                 description="Lương nhân viên"
@@ -329,26 +417,10 @@ const styles = StyleSheet.create({
     marginTop: -55,
   },
   body_list: {
-    padding: 16,
     marginBottom: "21%",
   },
   textButton: {
     color: "white",
     fontWeight: "500",
-  },
-  scrollFill: {
-    marginTop: 40,
-    padding: 10,
-    marginRight: 10,
-  },
-  buttonScroll: {
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    marginHorizontal: 5,
-    alignItems: "center",
-    justifyContent: "center",
-    height: 40,
-    borderWidth: 2,
-    borderColor: "#e7eef6",
   },
 });

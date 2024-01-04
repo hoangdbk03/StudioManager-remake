@@ -28,6 +28,9 @@ import DetailUser from "../components/DetailUser";
 import Statistical from "../components/Statistical";
 import ForgotPassword from "../components/ForgotPassword";
 import Salary from "../components/Salary";
+import ManagerWork from "../components/ManagerWork";
+import TypeWork from "../components/TypeWork";
+import ContractStaff from "../components/ContractStaff";
 
 // TODO: splashScreen, login (Stack)
 const Stack = createStackNavigator();
@@ -96,43 +99,65 @@ const Main = () => {
       ></Tab.Screen>
 
       <Tab.Screen
-        name="ManagerClient"
-        component={ManagerClient}
+        name="ManagerWork"
+        component={ManagerWork}
         options={({ route }) => ({
-          title: "Khách hàng",
+          title: "Công việc",
           tabBarIcon: ({ focused, color }) => {
             let iconImage = focused
-              ? require("../icons/client.png")
-              : require("../icons/client.png");
+              ? require("../icons/calendar.png")
+              : require("../icons/calendar.png");
             return (
               <Image
                 source={iconImage}
-                style={{ width: 28, height: 28, tintColor: color }}
+                style={{ width: 25, height: 30, tintColor: color }}
               />
             );
           },
           tabBarActiveTintColor: "#0E55A7",
         })}
       ></Tab.Screen>
-      <Tab.Screen
-        name="Contract"
-        component={Contract}
-        options={({ route }) => ({
-          title: "Hợp đồng",
-          tabBarIcon: ({ focused, color }) => {
-            let iconImage = focused
-              ? require("../icons/contract.png")
-              : require("../icons/contract.png");
-            return (
-              <Image
-                source={iconImage}
-                style={{ width: 22, height: 22, tintColor: color }}
-              />
-            );
-          },
-          tabBarActiveTintColor: "#0E55A7",
-        })}
-      ></Tab.Screen>
+      {!inforUser || inforUser.role !== "Nhân viên" ? (
+        <Tab.Screen
+          name="Contract"
+          component={Contract}
+          options={({ route }) => ({
+            title: "Hợp đồng",
+            tabBarIcon: ({ focused, color }) => {
+              let iconImage = focused
+                ? require("../icons/contract.png")
+                : require("../icons/contract.png");
+              return (
+                <Image
+                  source={iconImage}
+                  style={{ width: 22, height: 22, tintColor: color }}
+                />
+              );
+            },
+            tabBarActiveTintColor: "#0E55A7",
+          })}
+        ></Tab.Screen>
+      ) : (
+        <Tab.Screen
+          name="ContractStaff"
+          component={ContractStaff}
+          options={({ route }) => ({
+            title: "Hợp đồng",
+            tabBarIcon: ({ focused, color }) => {
+              let iconImage = focused
+                ? require("../icons/contract.png")
+                : require("../icons/contract.png");
+              return (
+                <Image
+                  source={iconImage}
+                  style={{ width: 22, height: 22, tintColor: color }}
+                />
+              );
+            },
+            tabBarActiveTintColor: "#0E55A7",
+          })}
+        ></Tab.Screen>
+      )}
       <Tab.Screen
         name="PageProfile"
         component={PageProfile}
@@ -233,6 +258,26 @@ const PageHome = () => {
           presentation: "modal",
         }}
       />
+      <Stack.Screen
+        name="TypeWork"
+        component={TypeWork}
+        options={{
+          headerTitle: "Quản lý loại công việc",
+          headerBackTitle: "Quay lại",
+          headerTitleAlign: "center",
+          presentation: "modal",
+        }}
+      />
+      <Stack.Screen
+        name="ManagerClient"
+        component={ManagerClient}
+        options={{
+          headerTitle: "Quản lý khách hàng",
+          headerBackTitle: "Quay lại",
+          headerTitleAlign: "center",
+          presentation: "modal",
+        }}
+      />
     </Stack.Navigator>
   );
 };
@@ -273,6 +318,8 @@ const hideTabBar = (route) => {
     "DetailUser",
     "Statistical",
     "Salary",
+    "TypeWork",
+    "ManagerClient"
   ];
 
   if (screensToHideTabBar.includes(routeName)) {
