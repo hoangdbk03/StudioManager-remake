@@ -14,34 +14,42 @@ import FontAwesome5 from "react-native-vector-icons/FontAwesome5";
 import { Skeleton } from "moti/skeleton";
 import Animated, { FadeIn, Layout } from "react-native-reanimated";
 import { useNavigation } from "@react-navigation/native";
+import { Alert } from "react-native";
+import AxiosIntance from "../util/AxiosIntance";
 
 const ItemListStaff = (props) => {
-  const { item, onDelete } = props;
+  const { item, onDelete, onTurnOffDisable } = props;
   const navigation = useNavigation();
   const [isModalVisible, setModalVisible] = useState(false);
 
   const handleLongPress = () => {
-    setModalVisible(true);
+    if (!item.disable) {
+      setModalVisible(true);
+    } else {
+      showAlert();
+    }
   };
   const hideModal = () => {
     setModalVisible(false);
   };
 
   const handlePhonePress = () => {
-    if (item.phone) {
+    if (!item.disable && item.phone) {
       const phoneUrl = `tel:${item.phone}`;
       Linking.openURL(phoneUrl);
     }
   };
 
   const handleDetailStaff = () => {
-    navigation.navigate("DetailStaff", { item });
+    if (!item.disable) {
+      navigation.navigate("DetailStaff", { item });
+    }
   };
 
-  const handleDelete = () =>{
+  const handleDelete = () => {
     onDelete(item._id);
     hideModal();
-  }
+  };
 
   const skeletonStyle = {
     colorMode: "light",
@@ -52,9 +60,37 @@ const ItemListStaff = (props) => {
     },
   };
 
+  const handleDisable = async() =>{
+    onTurnOffDisable(item._id);
+  }
+
+  const showAlert = () => {
+    if (item.disable) {
+      Alert.alert(
+        "Tắt vô hiệu hóa",
+        `[${item.role}] ${item.name}`,
+        [
+          {
+            text: "Hủy",
+            style: "cancel",
+          },
+          {
+            text: "Tắt",
+            onPress: () => {
+              handleDisable(); 
+            },
+          },
+        ],
+        { cancelable: false }
+      );
+    } else {
+      setModalVisible(true);
+    }
+  };
+
   return (
     <TouchableWithoutFeedback onLongPress={handleLongPress}>
-      <View style={styles.container}>
+      <View style={[styles.container, item.disable && styles.disabled]}>
         <Skeleton.Group show={item == null}>
           <View style={styles.header}>
             <Skeleton
@@ -123,9 +159,13 @@ const ItemListStaff = (props) => {
                       <FontAwesome5 name="phone-alt" />
                       <Text
                         onPress={handlePhonePress}
-                        style={{ fontSize: 13, marginStart: 5, color: item.phone ? 'black' : 'gray' }}
+                        style={{
+                          fontSize: 13,
+                          marginStart: 5,
+                          color: item.phone ? "black" : "gray",
+                        }}
                       >
-                        {item.phone || 'Chưa cập nhật'}
+                        {item.phone || "Chưa cập nhật"}
                       </Text>
                     </View>
                   </View>
@@ -170,20 +210,22 @@ const ItemListStaff = (props) => {
           </Skeleton>
         </Skeleton.Group>
         <Portal>
-          <Modal
-            visible={isModalVisible}
-            onDismiss={hideModal}
-            contentContainerStyle={styles.modalContainer}
-          >
-            <TouchableOpacity onPress={handleDelete} style={styles.frameText}>
-              <Text>Xóa</Text>
-              {item && (
-                <Text>
-                  [{item.role}] {item.name}
-                </Text>
-              )}
-            </TouchableOpacity>
-          </Modal>
+          {!item.disable && isModalVisible && (
+            <Modal
+              visible={true}
+              onDismiss={hideModal}
+              contentContainerStyle={styles.modalContainer}
+            >
+              <TouchableOpacity onPress={handleDelete} style={styles.frameText}>
+                <Text>Vô hiệu hóa</Text>
+                {item && (
+                  <Text>
+                    [{item.role}] {item.name}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </Modal>
+          )}
         </Portal>
       </View>
     </TouchableWithoutFeedback>
@@ -286,5 +328,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 10,
     borderRadius: 10,
+  },
+  disabled: {
+    opacity: 0.5, // Áp dụng mờ
   },
 });

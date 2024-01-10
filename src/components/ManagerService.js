@@ -25,12 +25,14 @@ import Modal from "react-native-modal";
 import { Text } from "react-native";
 import { styleModal } from "../style/styleModal";
 import * as ImagePicker from "expo-image-picker";
+import SpinnerOverlay from "../items/SpinnerOverlay";
 
 const ManagerService = () => {
   const [data, setData] = useState([]);
   const navigation = useNavigation();
   const [numColumns, setNumColumns] = useState(2);
   const [cartCount, setCartCount] = useState(0);
+  const [loading, setLoading] = useState(false);
   const { inforUser } = useContext(AppConText);
   const [imageUri, setImageUri] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -127,6 +129,7 @@ const ManagerService = () => {
   // * xử lý api thêm
   const addService = async () => {
     try {
+      setLoading(true);
       // Create FormData object
       const formData = new FormData();
       formData.append("name", dataAdd.name);
@@ -160,9 +163,11 @@ const ManagerService = () => {
         type: "success",
         text1: "Thêm thành công.",
       });
+      setLoading(false);
       toggleModalAdd();
       fetchData();
     } catch (error) {
+      setLoading(false);
       toggleModalAdd();
       console.log("Add Service Error: ", error);
       Toast.show({
@@ -174,6 +179,7 @@ const ManagerService = () => {
   // TODO: Xử lý API cập nhật dịch vụ
   const updateService = async () => {
     try {
+      setLoading(true);
       const formData = new FormData();
       formData.append("name", dataEdit.name);
       formData.append("description", dataEdit.description);
@@ -207,9 +213,11 @@ const ManagerService = () => {
         type: "success",
         text1: "Cập nhật thành công",
       });
+      setLoading(false);
       toggleModalUpdate();
       fetchData();
     } catch (error) {
+      setLoading(false);
       toggleModalUpdate();
       console.log("Update error", error);
       Toast.show({
@@ -221,13 +229,16 @@ const ManagerService = () => {
   // TODO: APi xóa dịch vụ theo id
   const deleteService = async (serviceId) => {
     try {
+      setLoading(true);
       await AxiosIntance().delete(`/service/delete/${serviceId}`);
       Toast.show({
         type: "success",
         text1: "Xóa thành công dịch vụ",
       });
+      setLoading(false);
       fetchData();
     } catch (error) {
+      setLoading(false);
       Toast.show({
         type: "error",
         text1: "Xóa thất bại",
@@ -273,6 +284,7 @@ const ManagerService = () => {
 
   return (
     <View style={styles.container}>
+      <SpinnerOverlay visible={loading}/>
       <FlatList
         data={data}
         numColumns={numColumns}
@@ -396,7 +408,7 @@ const ManagerService = () => {
           />
 
           <TextInput
-            style={[styleModal.textInput, {marginBottom: 10 }]}
+            style={[styleModal.textInput, { marginBottom: 10 }]}
             value={dataEdit.description}
             onChangeText={(text) =>
               setDataEdit({ ...dataEdit, description: text })
@@ -449,18 +461,18 @@ const ManagerService = () => {
                 mode="outlined"
                 label="Tên dịch vụ"
               />
+              {inforUser.role == !"Nhân viên" && (
+                <TextInput
+                  style={styleModal.textInput}
+                  value={formatCurrency(selectedItemForModal.price)}
+                  editable={false}
+                  mode="outlined"
+                  label="Giá tiền"
+                />
+              )}
+
               <TextInput
-                style={styleModal.textInput}
-                value={formatCurrency(selectedItemForModal.price)}
-                editable={false}
-                mode="outlined"
-                label="Giá tiền"
-              />
-              <TextInput
-                style={[
-                  styleModal.textInput,
-                  { marginBottom: 10 },
-                ]}
+                style={[styleModal.textInput, { marginBottom: 10 }]}
                 value={selectedItemForModal.description}
                 editable={false}
                 mode="outlined"

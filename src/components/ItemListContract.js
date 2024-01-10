@@ -5,6 +5,7 @@ import {
   View,
   TouchableOpacity,
   ScrollView,
+  Alert,
 } from "react-native";
 import { format, parseISO } from "date-fns";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
@@ -19,10 +20,15 @@ import { AppConText } from "../util/AppContext";
 import { useEffect } from "react";
 import { styleModal } from "../style/styleModal";
 import moment from "moment";
+import AxiosIntance from "../util/AxiosIntance";
+import Toast from "react-native-toast-message";
+import { ActivityIndicator } from "react-native";
+import SpinnerOverlay from "../items/SpinnerOverlay";
 
 const ItemListContract = (props) => {
   const { item } = props;
   const { inforUser } = useContext(AppConText);
+  const [loading, setLoading] = useState(false);
 
   const [isVisibleModalDetails, setVisibleModalDetails] = useState(false);
   const [isVisibleModalUpdates, setVisibleModalUpdates] = useState(false);
@@ -36,7 +42,7 @@ const ItemListContract = (props) => {
     },
   ]);
   const [editedPrepayment, setEditedPrepayment] = useState("");
-  const [editedPriceTotal, setEditedPriceTotal] = useState("");
+  const [updatedTotalPrice, setUpdatedTotalPrice] = useState("");
 
   const handleDescriptionChange = (text, index) => {
     const newAdditionalCosts = [...editedAdditionalCosts];
@@ -46,8 +52,12 @@ const ItemListContract = (props) => {
 
   const handlePriceChange = (text, index) => {
     const newAdditionalCosts = [...editedAdditionalCosts];
-    newAdditionalCosts[index].price = text;
+    newAdditionalCosts[index].price = text.replace(/[^\d]/g, "");
     setEditedAdditionalCosts(newAdditionalCosts);
+
+    // Tính toán và cập nhật giá trị tổng tiền sau khi thay đổi giá trị chi phí phát sinh
+    const total = item.priceTotal + calculateAdditionalCostsTotal();
+    setUpdatedTotalPrice(total);
   };
 
   const removeAdditionalCost = (index) => {
@@ -66,6 +76,63 @@ const ItemListContract = (props) => {
     ]);
   };
 
+  // TODO: xử lý cập nhật hợp đồng
+  const handleUpdateContract = async () => {
+    try {
+      setLoading(true);
+      const additionalCostsTotal = calculateAdditionalCostsTotal();
+
+      const data = {
+        additionalCosts: editedAdditionalCosts,
+        prepayment: editedPrepayment,
+        priceTotal:
+          additionalCostsTotal > 0
+            ? item.priceTotal + additionalCostsTotal
+            : item.priceTotal,
+        // Thêm các trường dữ liệu khác nếu có
+      };
+
+      await AxiosIntance().put(`/contract/update/${item._id}`, data);
+      Toast.show({
+        type: "success",
+        text1: "Cập nhật thành công",
+      });
+      setLoading(false);
+      toggleModalUpdate();
+      props.onContractUpdated();
+    } catch (error) {
+      setLoading(false);
+      console.log("Lỗi cập nhật hợp đồng: ", error);
+      Toast.show({
+        type: "error",
+        text1: "Cập nhật thất bại",
+      });
+    }
+  };
+
+  const cancelContract = async () => {
+    try {
+      setLoading(true);
+      const cancel = {
+        status: "Đã hủy",
+      };
+      await AxiosIntance().put(`/contract/update/${item._id}`, cancel);
+      Toast.show({
+        type: "success",
+        text1: "Hủy hợp đồng thành công",
+      });
+      setLoading(false);
+      props.onContractUpdated();
+    } catch (error) {
+      setLoading(false);
+      console.log("Lỗi hủy hợp đồng: ", error);
+      Toast.show({
+        type: "error",
+        text1: "Hủy thất bại",
+      });
+    }
+  };
+
   useEffect(() => {
     if (isVisibleModalDetails) {
       setEditedPrepayment("");
@@ -75,7 +142,7 @@ const ItemListContract = (props) => {
           price: "",
         },
       ]);
-      setEditedPriceTotal("");
+      setUpdatedTotalPrice("");
     }
   }, [isVisibleModalDetails]);
 
@@ -84,7 +151,18 @@ const ItemListContract = (props) => {
   };
 
   const toggleModalUpdate = () => {
-    setVisibleModalUpdates(!isVisibleModalUpdates);
+    if (item.status === "Đã thanh toán" || item.status === "Đã hủy") {
+      // Hiển thị cảnh báo khi trạng thái là "Đã thanh toán" hoặc "Đã hủy"
+      Alert.alert(
+        "Thông báo",
+        "Không thể chỉnh sửa hợp đồng đã thanh toán hoặc đã hủy.",
+        [{ text: "OK", onPress: () => {} }]
+      );
+    } else {
+      setVisibleModalUpdates(!isVisibleModalUpdates);
+      removeAdditionalCost();
+      setEditedPrepayment("");
+    }
   };
 
   const dateTimeString = item ? item.signingDate : null;
@@ -256,8 +334,35 @@ const ItemListContract = (props) => {
     }
   };
 
+  const handleCancelContract = () => {
+    if (item.status === "Chưa thanh toán") {
+      Alert.alert("Thông báo", `Bạn chắc chắn muốn hủy hợp đồng này?`, [
+        {
+          text: "Hủy",
+          style: "cancel",
+        },
+        {
+          text: "Hủy hợp đồng",
+          onPress: () => cancelContract(),
+        },
+      ]);
+    }
+  };
+
+  // chi phí phát sinh
+  const calculateAdditionalCostsTotal = () => {
+    const total = editedAdditionalCosts.reduce((acc, cost) => {
+      const costPrice = parseFloat(cost.price) || 0;
+      return acc + costPrice;
+    }, 0);
+    return total;
+  };
+
   return (
-    <View style={styles.container}>
+    <TouchableOpacity
+      style={styles.container}
+      onLongPress={handleCancelContract}
+    >
       <View style={styles.info}>
         <Text style={styles.label}>Khách hàng</Text>
         <Text style={styles.infoText}>{item.clientId.name}</Text>
@@ -316,7 +421,11 @@ const ItemListContract = (props) => {
           styles.status,
           {
             backgroundColor:
-              item.status === "Chưa thanh toán" ? "#db9200" : "#4CAF50",
+              item.status === "Chưa thanh toán"
+                ? "#db9200"
+                : item.status === "Đã hủy"
+                ? "#b0b0b0"
+                : "#4CAF50",
           },
         ]}
       >
@@ -550,7 +659,7 @@ const ItemListContract = (props) => {
               Chỉnh sửa hợp đồng
             </Text>
 
-            <ScrollView style={{height: 'auto', marginBottom: 10}}>
+            <ScrollView style={{ height: "auto", marginBottom: 10 }}>
               {editedAdditionalCosts.map((cost, index) => (
                 <View key={index}>
                   <TextInput
@@ -564,8 +673,9 @@ const ItemListContract = (props) => {
                   <TextInput
                     label={`Giá`}
                     mode="outlined"
-                    value={cost.price}
+                    value={formatCurrency(cost.price)}
                     onChangeText={(text) => handlePriceChange(text, index)}
+                    keyboardType="numeric"
                   />
                   <TouchableOpacity
                     style={{ marginBottom: 18, marginTop: 5 }}
@@ -602,14 +712,18 @@ const ItemListContract = (props) => {
 
             <Text style={{ fontWeight: "bold", padding: 10 }}>
               Tổng tiền(Bao gồm chi phí phát sinh):{" "}
-              {formatCurrency(item.priceTotal)}
+              {formatCurrency(
+                item.priceTotal + calculateAdditionalCostsTotal()
+              )}
             </Text>
 
             <TextInput
               label="Thanh toán tất cả"
-              value={editedPrepayment}
+              value={formatCurrency(editedPrepayment)}
               mode="outlined"
-              onChangeText={(text) => setEditedPrepayment(text)}
+              onChangeText={(text) =>
+                setEditedPrepayment(text.replace(/[^0-9]/g, ""))
+              }
             />
           </View>
 
@@ -621,7 +735,7 @@ const ItemListContract = (props) => {
               <Text style={styleModal.textButton1}>Hủy</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              // onPress={updateService}
+              onPress={handleUpdateContract}
               style={styleModal.button2}
             >
               <Text style={styleModal.textButton2}>Cập nhật</Text>
@@ -629,7 +743,8 @@ const ItemListContract = (props) => {
           </View>
         </View>
       </Modal>
-    </View>
+      <SpinnerOverlay visible={loading}/>
+    </TouchableOpacity>
   );
 };
 
@@ -667,7 +782,7 @@ const styles = StyleSheet.create({
   },
   infoText: {
     color: "#333",
-    fontWeight: '500'
+    fontWeight: "500",
   },
   buttons: {
     flexDirection: "row",
@@ -683,7 +798,7 @@ const styles = StyleSheet.create({
     color: "#4285f4",
     fontWeight: "bold",
     marginLeft: 5,
-    fontSize: 12
+    fontSize: 12,
   },
   editIcon: {
     marginTop: 1,
@@ -704,7 +819,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 15,
     width: "100%",
-    alignSelf: 'center'
+    alignSelf: "center",
   },
   head: {
     height: 40,

@@ -232,8 +232,7 @@ const Home = () => {
         </TouchableOpacity>
       </View>
 
-      {/* check role nếu là nhân viên thì ẩn menu quản lý*/}
-      {inforUser.role === "Nhân viên" ? null : <FloatingButton />}
+      <FloatingButton />
 
       {/* Modal hiển thị menu quản lý */}
       <Modal

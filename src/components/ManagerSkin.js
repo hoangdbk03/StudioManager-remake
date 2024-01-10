@@ -26,6 +26,7 @@ import { Text } from "react-native";
 import { styleModal } from "../style/styleModal";
 import * as ImagePicker from "expo-image-picker";
 import { Dropdown } from "react-native-element-dropdown";
+import SpinnerOverlay from "../items/SpinnerOverlay";
 
 const statusOptions = [
   { label: "Sẵn sàng", value: "1" },
@@ -37,6 +38,7 @@ const statusOptions = [
 const ManagerService = () => {
   const [data, setData] = useState([]);
   const [numColumns, setNumColumns] = useState(2);
+  const [loading, setLoading] = useState(false);
   const { inforUser } = useContext(AppConText);
   const [imageUri, setImageUri] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -141,6 +143,7 @@ const ManagerService = () => {
   // * xử lý api thêm
   const addOutfit = async () => {
     try {
+      setLoading(true);
       // Create FormData object
       const formData = new FormData();
       formData.append("name", dataAdd.name);
@@ -176,9 +179,11 @@ const ManagerService = () => {
         type: "success",
         text1: "Thêm thành công.",
       });
+      setLoading(false);
       toggleModalAdd();
       fetchData();
     } catch (error) {
+      setLoading(false);
       toggleModalAdd();
       console.log("Add Service Error: ", error);
       Toast.show({
@@ -190,6 +195,7 @@ const ManagerService = () => {
   // TODO: Xử lý API cập nhật dịch vụ
   const updateOutfit = async () => {
     try {
+      setLoading(true);
       const formData = new FormData();
       formData.append("name", dataEdit.name);
       formData.append("description", dataEdit.description);
@@ -211,7 +217,12 @@ const ManagerService = () => {
       }
 
       // validate
-      if (!dataEdit.name || !dataEdit.size || !dataEdit.price || !dataEdit.color) {
+      if (
+        !dataEdit.name ||
+        !dataEdit.size ||
+        !dataEdit.price ||
+        !dataEdit.color
+      ) {
         Alert.alert("Thông báo", "Vui lòng nhập đầy đủ thông tin!");
         return;
       }
@@ -227,9 +238,11 @@ const ManagerService = () => {
         type: "success",
         text1: "Cập nhật thành công",
       });
+      setLoading(false);
       toggleModalUpdate();
       fetchData();
     } catch (error) {
+      setLoading(false);
       toggleModalUpdate();
       console.log("Update error", error);
       Toast.show({
@@ -241,13 +254,16 @@ const ManagerService = () => {
   // TODO: APi xóa dịch vụ theo id
   const deleteOutfit = async (skinID) => {
     try {
+      setLoading(true);
       await AxiosIntance().delete(`/WeddingOutfit/delete/${skinID}`);
       Toast.show({
         type: "success",
         text1: "Xóa thành công",
       });
+      setLoading(false);
       fetchData();
     } catch (error) {
+      setLoading(false);
       Toast.show({
         type: "error",
         text1: "Xóa thất bại",
@@ -296,6 +312,7 @@ const ManagerService = () => {
 
   return (
     <View style={styles.container}>
+      <SpinnerOverlay visible={loading}/>
       <FlatList
         data={data}
         numColumns={numColumns}
@@ -423,53 +440,65 @@ const ManagerService = () => {
             value={selectedItem}
             onChange={(item) => setSelectedStatus(item.label)}
           />
+          {inforUser.role === "Nhân viên" ? null : (
+            <>
+              <TextInput
+                style={styleModal.textInput}
+                value={dataEdit.name}
+                onChangeText={(text) =>
+                  setDataEdit({ ...dataEdit, name: text })
+                }
+                mode="outlined"
+                label="Tên"
+              />
 
-          <TextInput
-            style={styleModal.textInput}
-            value={dataEdit.name}
-            onChangeText={(text) => setDataEdit({ ...dataEdit, name: text })}
-            mode="outlined"
-            label="Tên"
-          />
+              <TextInput
+                style={styleModal.textInput}
+                value={dataEdit.size}
+                onChangeText={(text) =>
+                  setDataEdit({ ...dataEdit, size: text })
+                }
+                mode="outlined"
+                label="Kích cỡ"
+              />
 
-          <TextInput
-            style={styleModal.textInput}
-            value={dataEdit.size}
-            onChangeText={(text) => setDataEdit({ ...dataEdit, size: text })}
-            mode="outlined"
-            label="Kích cỡ"
-          />
+              <TextInput
+                style={styleModal.textInput}
+                value={dataEdit.color}
+                onChangeText={(text) =>
+                  setDataEdit({ ...dataEdit, color: text })
+                }
+                mode="outlined"
+                label="Màu"
+              />
 
-          <TextInput
-            style={styleModal.textInput}
-            value={dataEdit.color}
-            onChangeText={(text) => setDataEdit({ ...dataEdit, color: text })}
-            mode="outlined"
-            label="Màu"
-          />
+              <TextInput
+                style={styleModal.textInput}
+                value={formatCurrency(dataEdit.price)}
+                onChangeText={(text) =>
+                  setDataEdit({
+                    ...dataEdit,
+                    price: text.replace(/[^0-9]/g, ""),
+                  })
+                }
+                mode="outlined"
+                label="Giá tiền"
+                keyboardType="numeric"
+              />
 
-          <TextInput
-            style={styleModal.textInput}
-            value={formatCurrency(dataEdit.price)}
-            onChangeText={(text) =>
-              setDataEdit({ ...dataEdit, price: text.replace(/[^0-9]/g, "") })
-            }
-            mode="outlined"
-            label="Giá tiền"
-            keyboardType="numeric"
-          />
-
-          <TextInput
-            style={[styleModal.textInput, {marginBottom: 10 }]}
-            value={dataEdit.description}
-            onChangeText={(text) =>
-              setDataEdit({ ...dataEdit, description: text })
-            }
-            mode="outlined"
-            label="Mô tả..."
-            multiline={true}
-            numberOfLines={6}
-          />
+              <TextInput
+                style={[styleModal.textInput, { marginBottom: 10 }]}
+                value={dataEdit.description}
+                onChangeText={(text) =>
+                  setDataEdit({ ...dataEdit, description: text })
+                }
+                mode="outlined"
+                label="Mô tả..."
+                multiline={true}
+                numberOfLines={6}
+              />
+            </>
+          )}
 
           <View style={styleModal.buttonModal}>
             <TouchableOpacity
@@ -503,6 +532,7 @@ const ManagerService = () => {
                   source={{ uri: selectedItemForModal.image }}
                 />
               </View>
+
               <TextInput
                 style={styleModal.textInput}
                 value={selectedItemForModal.name}
@@ -510,18 +540,32 @@ const ManagerService = () => {
                 mode="outlined"
                 label="Tên dịch vụ"
               />
+              {inforUser.role === "Nhân viên" ? null : (
+                <TextInput
+                  style={styleModal.textInput}
+                  value={formatCurrency(selectedItemForModal.price)}
+                  editable={false}
+                  mode="outlined"
+                  label="Giá tiền"
+                />
+              )}
+
               <TextInput
                 style={styleModal.textInput}
-                value={formatCurrency(selectedItemForModal.price)}
-                editable={false}
+                value={selectedItemForModal.size}
                 mode="outlined"
-                label="Giá tiền"
+                label="Kích cỡ"
               />
+
               <TextInput
-                style={[
-                  styleModal.textInput,
-                  { marginBottom: 10 },
-                ]}
+                style={styleModal.textInput}
+                value={selectedItemForModal.color}
+                mode="outlined"
+                label="Màu"
+              />
+
+              <TextInput
+                style={[styleModal.textInput, { marginBottom: 10 }]}
                 value={selectedItemForModal.description}
                 editable={false}
                 mode="outlined"

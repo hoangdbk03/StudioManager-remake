@@ -53,9 +53,11 @@ const ItemListService = (props) => {
           {item.name}
         </Text>
       </View>
-      <View style={{ alignItems: "flex-end" }}>
+      {inforUser.role ==! "Nhân viên" &&(
+        <View style={{ alignItems: "flex-end" }}>
         <Text style={styles.textPrice}>{formatPrice(item.price)}₫</Text>
       </View>
+      )}
 
       <View
         style={{ height: 0.8, backgroundColor: "#b0b0b0", borderRadius: 20 }}

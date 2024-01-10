@@ -42,6 +42,15 @@ const ItemListContractStaff = (props) => {
         <Text style={styles.label}>Ngày hẹn</Text>
         <Text style={styles.infoText}>{formattedWorkDate}</Text>
       </View>
+      <Text
+        style={[
+          styles.status,
+          {
+            backgroundColor:
+              item.status === "Chưa thanh toán" ? "#db9200" : "#4CAF50",
+          },
+        ]}
+      >{item.status}</Text>
 
       <View
         style={{

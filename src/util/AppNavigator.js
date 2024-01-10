@@ -31,6 +31,7 @@ import Salary from "../components/Salary";
 import ManagerWork from "../components/ManagerWork";
 import TypeWork from "../components/TypeWork";
 import ContractStaff from "../components/ContractStaff";
+import WorkStaff from "../components/WorkStaff";
 
 // TODO: splashScreen, login (Stack)
 const Stack = createStackNavigator();
@@ -97,26 +98,48 @@ const Main = () => {
           tabBarActiveTintColor: "#0E55A7",
         })}
       ></Tab.Screen>
+      {!inforUser || inforUser.role !== "Nhân viên" ? (
+        <Tab.Screen
+          name="ManagerWork"
+          component={ManagerWork}
+          options={({ route }) => ({
+            title: "Công việc",
+            tabBarIcon: ({ focused, color }) => {
+              let iconImage = focused
+                ? require("../icons/calendar.png")
+                : require("../icons/calendar.png");
+              return (
+                <Image
+                  source={iconImage}
+                  style={{ width: 25, height: 30, tintColor: color }}
+                />
+              );
+            },
+            tabBarActiveTintColor: "#0E55A7",
+          })}
+        ></Tab.Screen>
+      ) : (
+        <Tab.Screen
+          name="WorkStaff"
+          component={WorkStaff}
+          options={({ route }) => ({
+            title: "Công việc",
+            tabBarIcon: ({ focused, color }) => {
+              let iconImage = focused
+                ? require("../icons/calendar.png")
+                : require("../icons/calendar.png");
+              return (
+                <Image
+                  source={iconImage}
+                  style={{ width: 25, height: 30, tintColor: color }}
+                />
+              );
+            },
+            tabBarActiveTintColor: "#0E55A7",
+          })}
+        ></Tab.Screen>
+      )}
 
-      <Tab.Screen
-        name="ManagerWork"
-        component={ManagerWork}
-        options={({ route }) => ({
-          title: "Công việc",
-          tabBarIcon: ({ focused, color }) => {
-            let iconImage = focused
-              ? require("../icons/calendar.png")
-              : require("../icons/calendar.png");
-            return (
-              <Image
-                source={iconImage}
-                style={{ width: 25, height: 30, tintColor: color }}
-              />
-            );
-          },
-          tabBarActiveTintColor: "#0E55A7",
-        })}
-      ></Tab.Screen>
       {!inforUser || inforUser.role !== "Nhân viên" ? (
         <Tab.Screen
           name="Contract"
@@ -158,6 +181,7 @@ const Main = () => {
           })}
         ></Tab.Screen>
       )}
+
       <Tab.Screen
         name="PageProfile"
         component={PageProfile}
@@ -222,7 +246,7 @@ const PageHome = () => {
         name="ManagerSkin"
         component={ManagerSkin}
         options={{
-          headerTitle: "Quản lý trang phục",
+          headerTitle: "Trang phục",
           headerBackTitle: "Quay lại",
           headerTitleAlign: "center",
           presentation: "modal",
@@ -319,7 +343,7 @@ const hideTabBar = (route) => {
     "Statistical",
     "Salary",
     "TypeWork",
-    "ManagerClient"
+    "ManagerClient",
   ];
 
   if (screensToHideTabBar.includes(routeName)) {

@@ -18,15 +18,17 @@ import AxiosIntance from "../util/AxiosIntance";
 import { TextInput } from "react-native-paper";
 import AntDesign from "react-native-vector-icons/AntDesign";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import { format } from "date-fns";
+import { format, isValid, parseISO } from "date-fns";
 import { useFocusEffect } from "@react-navigation/native";
 import Toast from "react-native-toast-message";
 import ItemListContract from "./ItemListContract";
+import SpinnerOverlay from "../items/SpinnerOverlay";
 import { IconButton, Searchbar } from "react-native-paper";
 import unorm from "unorm";
 
 const Contract = () => {
   const { inforUser } = useContext(AppConText);
+  const [loading, setLoading] = useState(false);
   const [isModalCreateVisible, setModalCreateVisible] = useState(false);
   const [isWorkDatePickerVisible, setWorkDatePickerVisible] = useState(false);
   const [isDeliveryDatePickerVisible, setDeliveryDatePickerVisible] =
@@ -70,8 +72,28 @@ const Contract = () => {
   const [dataContract, setDataContract] = useState([]);
   const [filterStatus, setFilterStatus] = useState("Tất cả");
   const [searchQuery, setSearchQuery] = useState("");
+  const [isDatePickerVisible, setDatePickerVisible] = useState(false);
 
   const onChangeSearch = (query) => setSearchQuery(query);
+
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+  };
+
+  const showDatePicker = () => {
+    setDatePickerVisible(true);
+  };
+
+  const hideDatePicker = () => {
+    setDatePickerVisible(false);
+  };
+
+  const handleDateConfirm = (date) => {
+    hideDatePicker();
+    const formattedDate = format(date, "dd/MM/yyyy");
+    setSearchQuery(formattedDate);
+    setSelectedDate(date);
+  };
 
   // * Phần của khách hàng
   const [dataClient, setDataClient] = useState([]);
@@ -221,6 +243,10 @@ const Contract = () => {
       console.log("Lỗi lấy danh sách hợp đồng");
     }
   };
+  // Gọi lại hàm fetchDataContract khi hợp đồng được cập nhật
+  const onContractUpdated = () => {
+    fetchDataContract();
+  };
 
   // * xóa dịch vụ được chọn
   const removeSelectedService = (serviceId) => {
@@ -327,6 +353,7 @@ const Contract = () => {
 
   // TODO: xử lý api tạo hợp đồng
   const handleCreateContract = async () => {
+    setLoading(true);
     const totalPrice = calculateTotalPrice();
     if (
       !selectedClient ||
@@ -369,8 +396,10 @@ const Contract = () => {
         type: "success",
         text1: "Tạo hợp đồng thành công",
       });
+      setLoading(false);
       toggleModalCreate();
     } catch (error) {
+      setLoading(false);
       toggleModalCreate();
       Toast.show({
         type: "error",
@@ -386,7 +415,17 @@ const Contract = () => {
   // Lọc dữ liệu dựa trên chuỗi tìm kiếm đã được chuẩn hóa
   const filteredData = dataContract.filter((item) => {
     const normalizedDataName = unorm.nfkd(item.clientId.name.toLowerCase());
-    return normalizedDataName.includes(normalizedSearchQuery);
+
+    // Chuyển đổi chuỗi ngày thành đối tượng ngày
+    const contractDate = parseISO(item.signingDate);
+
+    // Kiểm tra nếu ngày ký hợp đồng hợp lệ và có chứa chuỗi tìm kiếm
+    const isDateValid = isValid(contractDate);
+    const isDateMatch =
+      isDateValid &&
+      format(contractDate, "dd/MM/yyyy").includes(normalizedSearchQuery);
+
+    return normalizedDataName.includes(normalizedSearchQuery) || isDateMatch;
   });
 
   return (
@@ -396,7 +435,7 @@ const Contract = () => {
           flexDirection: "row",
           justifyContent: "space-between",
           width: "100%",
-          padding: 10
+          padding: 10,
         }}
       >
         <Searchbar
@@ -404,63 +443,92 @@ const Contract = () => {
           onChangeText={onChangeSearch}
           value={searchQuery}
           style={{ borderRadius: 10, width: "82%" }}
-          icon={() => <IconButton icon="calendar" />}
+          icon={() => <IconButton icon="calendar" onPress={showDatePicker}/>}
+        />
+        <DateTimePickerModal
+          isVisible={isDatePickerVisible}
+          mode="date"
+          onConfirm={handleDateConfirm}
+          onCancel={hideDatePicker}
         />
         {/* Floating button */}
         <TouchableOpacity style={styles.fab} onPress={toggleModalCreate}>
           <MaterialIcons name="add" size={30} color="white" />
         </TouchableOpacity>
       </View>
-      <View style={styles.filterContainer}>
-        <TouchableOpacity
-          style={[
-            styles.filterButton,
-            filterStatus === "Tất cả" && styles.activeFilterButton,
-          ]}
-          onPress={() => setFilterStatus("Tất cả")}
+      <View style={{ height: 60 }}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.filterContainer}
         >
-          <Text
+          <TouchableOpacity
             style={[
-              styles.filterButtonText,
-              filterStatus === "Tất cả" && styles.activeFilterButtonText,
+              styles.filterButton,
+              filterStatus === "Tất cả" && styles.activeFilterButton,
             ]}
+            onPress={() => setFilterStatus("Tất cả")}
           >
-            Tất cả
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[
-            styles.filterButton,
-            filterStatus === "Chưa thanh toán" && styles.activeFilterButton2,
-          ]}
-          onPress={() => setFilterStatus("Chưa thanh toán")}
-        >
-          <Text
+            <Text
+              style={[
+                styles.filterButtonText,
+                filterStatus === "Tất cả" && styles.activeFilterButtonText,
+              ]}
+            >
+              Tất cả
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
             style={[
-              styles.filterButtonText,
-              filterStatus === "Chưa thanh toán" &&
-                styles.activeFilterButtonText,
+              styles.filterButton,
+              filterStatus === "Chưa thanh toán" && styles.activeFilterButton2,
             ]}
+            onPress={() => setFilterStatus("Chưa thanh toán")}
           >
-            Chưa thanh toán
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[
-            styles.filterButton,
-            filterStatus === "Đã thanh toán" && styles.activeFilterButton3,
-          ]}
-          onPress={() => setFilterStatus("Đã thanh toán")}
-        >
-          <Text
+            <Text
+              style={[
+                styles.filterButtonText,
+                filterStatus === "Chưa thanh toán" &&
+                  styles.activeFilterButtonText,
+              ]}
+            >
+              Chưa thanh toán
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
             style={[
-              styles.filterButtonText,
-              filterStatus === "Đã thanh toán" && styles.activeFilterButtonText,
+              styles.filterButton,
+              filterStatus === "Đã thanh toán" && styles.activeFilterButton3,
             ]}
+            onPress={() => setFilterStatus("Đã thanh toán")}
           >
-            Đã thanh toán
-          </Text>
-        </TouchableOpacity>
+            <Text
+              style={[
+                styles.filterButtonText,
+                filterStatus === "Đã thanh toán" &&
+                  styles.activeFilterButtonText,
+              ]}
+            >
+              Đã thanh toán
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.filterButton,
+              filterStatus === "Đã hủy" && styles.activeFilterButton4,
+            ]}
+            onPress={() => setFilterStatus("Đã hủy")}
+          >
+            <Text
+              style={[
+                styles.filterButtonText,
+                filterStatus === "Đã hủy" && styles.activeFilterButtonText,
+              ]}
+            >
+              Đã hủy
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
       </View>
 
       {/* Danh sách hợp đồng */}
@@ -474,11 +542,14 @@ const Contract = () => {
                   (filterStatus === "Chưa thanh toán" &&
                     item.status === "Chưa thanh toán") ||
                   (filterStatus === "Đã thanh toán" &&
-                    item.status === "Đã thanh toán")
+                    item.status === "Đã thanh toán") ||
+                  (filterStatus === "Đã hủy" && item.status === "Đã hủy")
               )
         }
         keyExtractor={(item) => item._id}
-        renderItem={({ item }) => <ItemListContract item={item} />}
+        renderItem={({ item }) => (
+          <ItemListContract item={item} onContractUpdated={onContractUpdated} />
+        )}
       />
 
       {/* Modal tạo hợp đồng */}
@@ -929,6 +1000,7 @@ const Contract = () => {
           </TouchableOpacity>
         </View>
       </Modal>
+      <SpinnerOverlay visible={loading} />
     </View>
   );
 };
@@ -938,7 +1010,7 @@ export default Contract;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white'
+    backgroundColor: "white",
   },
   titleModal: {
     width: "100%",
@@ -1021,8 +1093,6 @@ const styles = StyleSheet.create({
     alignSelf: "flex-end",
   },
   filterContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
     marginVertical: 10,
   },
   filterButton: {
@@ -1031,6 +1101,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginHorizontal: 5,
     backgroundColor: "#E0E0E0",
+    height: 35,
   },
   activeFilterButton: {
     backgroundColor: "#0E55A7",
@@ -1040,6 +1111,9 @@ const styles = StyleSheet.create({
   },
   activeFilterButton3: {
     backgroundColor: "#4CAF50",
+  },
+  activeFilterButton4: {
+    backgroundColor: "#b0b0b0",
   },
   filterButtonText: {
     color: "#333",

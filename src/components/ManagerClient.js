@@ -84,7 +84,7 @@ const ManagerClient = () => {
   const fetchData = async () => {
     try {
       const response = await AxiosIntance().get("/client/list/");
-      const apiData = response;
+      const apiData = response.filter(item => item.disable === false);
       setdata(apiData);
       setrefreshing(false);
     } catch (error) {
@@ -170,7 +170,10 @@ const ManagerClient = () => {
   //xử lý xóa dữ liệu
   const handleDeleteItem = async (itemId) => {
     try {
-      await AxiosIntance().delete("/client/delete/" + itemId);
+      const disable = {
+        disable: true
+      }
+      await AxiosIntance().put("/client/update/" + itemId, disable);
       Toast.show({
         type: "success",
         text1: "Xóa thành công",

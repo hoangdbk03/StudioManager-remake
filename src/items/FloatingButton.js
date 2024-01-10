@@ -23,7 +23,7 @@ const FloatingButton = () => {
       visible
       icon={open ? "close" : "plus"}
       actions={[
-        {
+        inforUser.role !== "Nhân viên" &&{
           icon: require("../icons/suitcase.png"),
           label: "Quản lý loại công việc",
           onPress: () => navigation.navigate("TypeWork"),
@@ -34,7 +34,7 @@ const FloatingButton = () => {
 
           labelStyle: { fontSize: 13 },
         },
-        {
+        inforUser.role !== "Nhân viên" &&{
           icon: require("../icons/add-user.png"),
           label: "Đăng ký người dùng",
           onPress: () => navigation.navigate("Register"),
@@ -45,7 +45,7 @@ const FloatingButton = () => {
 
           labelStyle: { fontSize: 13 },
         },
-        {
+        inforUser.role !== "Nhân viên" &&{
           icon: require("../icons/client.png"),
           label: "Quản lý khách hàng",
           onPress: () => navigation.navigate("ManagerClient"),
@@ -58,7 +58,7 @@ const FloatingButton = () => {
         },
         {
           icon: require("../icons/woman.png"),
-          label: "Quản lý trang phục",
+          label: "Trang phục",
           onPress: () => navigation.navigate("ManagerSkin"),
           labelTextColor: "white",
           color: "white",
@@ -67,7 +67,7 @@ const FloatingButton = () => {
 
           labelStyle: { fontSize: 13 },
         },
-        {
+        inforUser.role !== "Nhân viên" &&{
           icon: require("../img/chart.png"),
           label: "Thống kê",
           onPress: () => navigation.navigate("Statistical"),

@@ -56,13 +56,13 @@ const ManagerStaff = ({ route, navigation }) => {
 
   // alert xác nhận xóa
   const alertConfirm = (itemId) => {
-    Alert.alert("Xác nhận xóa", "Bạn chắc chắn muốn xóa?", [
+    Alert.alert("Thông báo", "Bạn chắc chắn muốn vô hiệu hóa?", [
       {
         text: "Hủy",
         style: "cancel",
       },
       {
-        text: "Xóa",
+        text: "Vô hiệu hóa",
         onPress: () => {
           handleDelete(itemId);
         },
@@ -73,16 +73,39 @@ const ManagerStaff = ({ route, navigation }) => {
   // gọi api xử lý xóa theo id
   const handleDelete = async (itemId) => {
     try {
-      await AxiosIntance().delete("/user/delete/" + itemId);
+      const disable = {
+        disable: true
+      }
+      await AxiosIntance().put("/user/update/" + itemId, disable);
       Toast.show({
         type: "success",
-        text1: "Xóa thành công",
+        text1: "Vô hiệu hóa thành công",
       });
       fetchData(); // cập nhật lại dữ liệu sau khi xóa thành công
     } catch (error) {
       Toast.show({
         type: "error",
-        text1: "Xóa thất bại",
+        text1: "Vô hiệu hóa thất bại",
+      });
+    }
+  };
+
+  // mở lại disable = false
+  const turnOffDisable = async (itemId) => {
+    try {
+      const disable = {
+        disable: false
+      }
+      await AxiosIntance().put("/user/update/" + itemId, disable);
+      Toast.show({
+        type: "success",
+        text1: "Tắt vô hiệu hóa thành công",
+      });
+      fetchData(); // cập nhật lại dữ liệu sau khi xóa thành công
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "Tắt vô hiệu hóa thất bại",
       });
     }
   };
@@ -149,7 +172,7 @@ const ManagerStaff = ({ route, navigation }) => {
               inforUser.role === "Quản lý" &&
               item.role === "Nhân viên"
             ) {
-              return <ItemListStaff item={item} onDelete={alertConfirm} />;
+              return <ItemListStaff item={item} onDelete={alertConfirm} onTurnOffDisable={turnOffDisable} />;
             }
           }}
         />

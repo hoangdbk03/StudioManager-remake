@@ -29,6 +29,7 @@ const Login = () => {
   const [emailUser, setemailUser] = useState("");
   const [passwordUser, setpasswordUser] = useState("");
   const [loading, setLoading] = useState(false);
+  const [accountDisabledMessage, setAccountDisabledMessage] = useState("");
 
   // * ẩn hoặc hiển thị password
   const [isPasswordVisible, setisPasswordVisible] = useState(false);
@@ -106,6 +107,8 @@ const Login = () => {
           await AsyncStorage.removeItem("passwordUser");
           await AsyncStorage.removeItem("rememberCredentials");
         }
+      } else if (response.disable === true) {
+        setAccountDisabledMessage("Tài khoản này đang bị khóa.");
       } else {
         Toast.show({
           type: "error",
@@ -131,9 +134,9 @@ const Login = () => {
         useNativeDriver: false,
       }).start();
     };
-  
+
     startAnimation();
-  
+
     return () => {
       translateY.stopAnimation();
     };
@@ -145,106 +148,109 @@ const Login = () => {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={styles.container}
     >
-    <ScrollView style={styles.ScrollViewContainer}>
-      <Image style={styles.img} source={require("../img/backgroundSpl.jpg")} />
-      <Image style={styles.imgFont} source={require("../img/fontBack.png")} />
+      <ScrollView style={styles.ScrollViewContainer}>
+        <Image
+          style={styles.img}
+          source={require("../img/backgroundSpl.jpg")}
+        />
+        <Image style={styles.imgFont} source={require("../img/fontBack.png")} />
 
-      {/* form đăng nhập */}
-      <Animated.View style={{ transform: [{ translateY }] }}>
-        <View style={styles.fontLogin}>
-          <Text style={styles.loginText}>Đăng nhập</Text>
-          <View style={styles.bar} />
+        {/* form đăng nhập */}
+        <Animated.View style={{ transform: [{ translateY }] }}>
+          <View style={styles.fontLogin}>
+            <Text style={styles.loginText}>Đăng nhập</Text>
+            <View style={styles.bar} />
 
-          {/* EMAIL */}
-          <View>
-            <View style={styles.inputEmail}>
-              <TextInput
-                style={styles.textInput}
-                placeholder="example@gmail.com"
-                onChangeText={setemailUser}
-                value={emailUser}
-              />
-            </View>
-            <View style={styles.viewLabelEmail}>
-              <Text Text style={styles.label}>
-                Email
-              </Text>
-            </View>
-          </View>
-
-          {/* Password */}
-          <View>
-            <View style={styles.inputPass}>
-              <TextInput
-                style={styles.textInput}
-                label="Mật khẩu"
-                secureTextEntry={!isPasswordVisible}
-                placeholder="******"
-                onChangeText={setpasswordUser}
-                value={passwordUser}
-              />
-              <TouchableOpacity
-                style={styles.passwordVisibilityIcon}
-                onPress={togglePasswordVisibility}
-              >
-                <Icon
-                  name={isPasswordVisible ? "eye-off-outline" : "eye-outline"}
-                  size={20}
-                  color="#0E55A7"
+            {/* EMAIL */}
+            <View>
+              <View style={styles.inputEmail}>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="example@gmail.com"
+                  onChangeText={setemailUser}
+                  value={emailUser}
                 />
+              </View>
+              <View style={styles.viewLabelEmail}>
+                <Text Text style={styles.label}>
+                  Email
+                </Text>
+              </View>
+            </View>
+
+            {/* Password */}
+            <View>
+              <View style={styles.inputPass}>
+                <TextInput
+                  style={styles.textInput}
+                  label="Mật khẩu"
+                  secureTextEntry={!isPasswordVisible}
+                  placeholder="******"
+                  onChangeText={setpasswordUser}
+                  value={passwordUser}
+                />
+                <TouchableOpacity
+                  style={styles.passwordVisibilityIcon}
+                  onPress={togglePasswordVisibility}
+                >
+                  <Icon
+                    name={isPasswordVisible ? "eye-off-outline" : "eye-outline"}
+                    size={20}
+                    color="#0E55A7"
+                  />
+                </TouchableOpacity>
+              </View>
+              <View style={styles.viewLabelPass}>
+                <Text Text style={styles.label}>
+                  Mật khẩu
+                </Text>
+              </View>
+            </View>
+
+            {/* checkbox và quên mật khẩu */}
+            <View style={styles.checkBox}>
+              <TouchableOpacity
+                activeOpacity={1}
+                style={styles.checkBox}
+                onPress={() => setRememberCredentials(!rememberCredentials)}
+              >
+                <Checkbox
+                  status={rememberCredentials ? "checked" : "unchecked"}
+                  onPress={() => {
+                    setRememberCredentials(!rememberCredentials);
+                  }}
+                  color="#0E55A7"
+                  uncheckedColor="#0E55A7"
+                />
+                <Text style={{ color: "#0E55A7", top: 8 }}>
+                  Ghi nhớ tài khoản
+                </Text>
               </TouchableOpacity>
-            </View>
-            <View style={styles.viewLabelPass}>
-              <Text Text style={styles.label}>
-                Mật khẩu
-              </Text>
-            </View>
-          </View>
-
-          {/* checkbox và quên mật khẩu */}
-          <View style={styles.checkBox}>
-            <TouchableOpacity
-              activeOpacity={1}
-              style={styles.checkBox}
-              onPress={() => setRememberCredentials(!rememberCredentials)}
-            >
-              <Checkbox
-                status={rememberCredentials ? "checked" : "unchecked"}
-                onPress={() => {
-                  setRememberCredentials(!rememberCredentials);
+              <Text
+                style={{
+                  marginLeft: 70,
+                  top: 12,
+                  color: "#0E55A7",
+                  textDecorationLine: "underline",
                 }}
-                color="#0E55A7"
-                uncheckedColor="#0E55A7"
-              />
-              <Text style={{ color: "#0E55A7", top: 8 }}>
-                Ghi nhớ tài khoản
+                onPress={() => navigation.navigate("ForgotPassword")}
+              >
+                Quên mật khẩu?
               </Text>
-            </TouchableOpacity>
-            <Text
-              style={{
-                marginLeft: 70,
-                top: 12,
-                color: "#0E55A7",
-                textDecorationLine: "underline",
-              }}
-              onPress={() => navigation.navigate("ForgotPassword")}
-            >
-              Quên mật khẩu?
-            </Text>
-          </View>
+            </View>
 
-          {/* Button đăng nhập */}
-          <TouchableOpacity style={styles.buttonLogin} onPress={goLogin}>
-            <Text style={styles.textButton}>Đăng nhập</Text>
-          </TouchableOpacity>
-        </View>
-      </Animated.View>
-      {loading && (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#0E55A7" />
-        </View>
-      )}
-    </ScrollView>
+            {/* Button đăng nhập */}
+            <TouchableOpacity style={styles.buttonLogin} onPress={goLogin}>
+              <Text style={styles.textButton}>Đăng nhập</Text>
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
+        {loading && (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#0E55A7" />
+          </View>
+        )}
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 };
@@ -254,7 +260,7 @@ export default Login;
 const styles = StyleSheet.create({
   container: {
     backgroundColor: "white",
-    flex: 1
+    flex: 1,
   },
   scrollViewContainer: {
     flex: 1,
@@ -310,7 +316,7 @@ const styles = StyleSheet.create({
   textInput: {
     marginStart: 28,
     marginTop: 10,
-    ...(Platform.OS === 'ios' && {marginTop: 15})
+    ...(Platform.OS === "ios" && { marginTop: 15 }),
   },
   viewLabelEmail: {
     width: 50,

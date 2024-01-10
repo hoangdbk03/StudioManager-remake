@@ -73,9 +73,11 @@ const ItemListService = (props) => {
           {item.status}
         </Text>
       </View>
-      <View style={{ alignItems: "flex-end" }}>
-        <Text style={styles.textPrice}>{formatPrice(item.price)}₫</Text>
-      </View>
+      {inforUser.role === "Nhân viên" ? null : (
+        <View style={{ alignItems: "flex-end" }}>
+          <Text style={styles.textPrice}>{formatPrice(item.price)}₫</Text>
+        </View>
+      )}
 
       <View
         style={{ height: 0.8, backgroundColor: "#b0b0b0", borderRadius: 20 }}
@@ -99,22 +101,20 @@ const ItemListService = (props) => {
       </View>
 
       {/* Các nút thêm sửa xóa */}
-      {inforUser.role === "Nhân viên" ? null : (
-        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-          <TouchableOpacity
-            style={styles.buttonEdit}
-            onPress={handleEditService}
-          >
-            <Text style={styles.textButton}>Sửa</Text>
-          </TouchableOpacity>
+
+      <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+        <TouchableOpacity style={styles.buttonEdit} onPress={handleEditService}>
+          <Text style={styles.textButton}>Sửa</Text>
+        </TouchableOpacity>
+        {inforUser.role === "Nhân viên" ? null : (
           <TouchableOpacity
             style={styles.buttonDel}
             onPress={handleDeleteService}
           >
             <Text style={styles.textButtonDel}>Xóa</Text>
           </TouchableOpacity>
-        </View>
-      )}
+        )}
+      </View>
     </View>
   );
 };

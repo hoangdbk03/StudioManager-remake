@@ -17,6 +17,7 @@ import { Dropdown } from "react-native-element-dropdown";
 import { useNavigation } from "@react-navigation/native";
 import Toast from "react-native-toast-message";
 import * as ImagePicker from "expo-image-picker";
+import SpinnerOverlay from "../items/SpinnerOverlay";
 
 const genderOptions = [
   { label: "Nam", value: "1" },
@@ -33,6 +34,7 @@ const DetailUser = () => {
   const [selectedGender, setSelectedGender] = useState("");
   const [birthday, setBirthday] = useState("");
   const [phone, setPhone] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const dateTimeString = dataUser ? dataUser.createdAt : null;
 
@@ -78,6 +80,7 @@ const DetailUser = () => {
   // TODO: Gọi API cập nhật người dùng
   const updateUser = async () => {
     try {
+      setLoading(true);
       // kiểm tra xem có thay đổi gì không
       const avatarChanged = imageUri !== dataUser.avatar;
       const phoneChanged = phone !== dataUser.phone;
@@ -135,8 +138,10 @@ const DetailUser = () => {
         type: "success",
         text1: "Lưu thành công",
       });
+      setLoading(false);
       navigation.navigate("Profile", { refresh: true });
     } catch (error) {
+      setLoading(false);
       Toast.show({
         type: "error",
         text1: "Lưu thất bại",
@@ -156,6 +161,7 @@ const DetailUser = () => {
 
   return (
     <ScrollView style={{ backgroundColor: "white" }}>
+      <SpinnerOverlay visible={loading}/>
       <View style={styles.container}>
         <TouchableOpacity
           style={styles.frameAvatar}
