@@ -107,12 +107,10 @@ const Login = () => {
           await AsyncStorage.removeItem("passwordUser");
           await AsyncStorage.removeItem("rememberCredentials");
         }
-      } else if (response.disable === true) {
-        setAccountDisabledMessage("Tài khoản này đang bị khóa.");
-      } else {
+      }else{
         Toast.show({
           type: "error",
-          text1: "SAI MẬT KHẨU!",
+          text1: response.message,
         });
       }
     } catch (error) {

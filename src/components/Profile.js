@@ -31,8 +31,7 @@ const Profile = ({ route }) => {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   // * lấy dữ liệu được lưu từ AppConText
-  const { inforUser } = useContext(AppConText);
-  const { setisLogin } = useContext(AppConText);
+  const { inforUser, setisLogin } = useContext(AppConText);
 
   // * lưu dữ liệu người dùng
   const [data, setData] = useState({});

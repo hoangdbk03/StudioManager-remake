@@ -90,7 +90,7 @@ const ItemListStaff = (props) => {
 
   return (
     <TouchableWithoutFeedback onLongPress={handleLongPress}>
-      <View style={[styles.container, item.disable && styles.disabled]}>
+      <View style={[styles.container, item && item.disable && styles.disabled]}>
         <Skeleton.Group show={item == null}>
           <View style={styles.header}>
             <Skeleton
@@ -210,7 +210,7 @@ const ItemListStaff = (props) => {
           </Skeleton>
         </Skeleton.Group>
         <Portal>
-          {!item.disable && isModalVisible && (
+          {item && !item.disable && isModalVisible && (
             <Modal
               visible={true}
               onDismiss={hideModal}
