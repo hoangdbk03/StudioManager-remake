@@ -3,14 +3,39 @@ import React, { useState } from "react";
 import Modal from "react-native-modal";
 import { styleModal } from "../style/styleModal";
 import { TextInput } from "react-native-paper";
+import AxiosIntance from "../util/AxiosIntance";
+import Toast from "react-native-toast-message";
+import SpinnerOverlay from "../items/SpinnerOverlay";
 
 const ItemListTypeWork = (props) => {
-  const { item, index, totalItems } = props;
+  const { item, index, totalItems, onUpdate, onDelete } = props;
+  const [loading, setLoading] = useState(false);
+  const [name, setName] = useState(item.name || "");
 
   const [isVisibleModalUpdate, setVisibleModalUpdate] = useState(false);
 
   const toggleModalUpdate = () => {
     setVisibleModalUpdate(!isVisibleModalUpdate);
+  };
+
+  // TODO: xóa loại công việc
+  const handleDelete = async () => {
+    setLoading(true);
+    try {
+      await AxiosIntance().delete(`/work/delete/${item._id}`);
+      Toast.show({
+        type: "success",
+        text1: "Xóa thành công",
+      });
+      onDelete();
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "Xóa thất bại",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const toggleModalDelete = () => {
@@ -21,12 +46,34 @@ const ItemListTypeWork = (props) => {
       },
       {
         text: "Xóa",
-        onPress: () => {},
+        onPress: () => handleDelete(),
       },
     ]);
   };
 
   const countdownIndex = totalItems - index;
+
+  // TODO: xử lý cập nhật
+  const handleUpdate = async () => {
+    setLoading(true);
+    try {
+      await AxiosIntance().put(`/work/update/${item._id}`, { name: name });
+      Toast.show({
+        type: "success",
+        text1: "Cập nhật thành công",
+      });
+      toggleModalUpdate();
+      onUpdate();
+    } catch (error) {
+      console.log("Lỗi cập nhật loại công việc", error);
+      Toast.show({
+        type: "error",
+        text1: "Cập nhật thất bại",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <TouchableOpacity
@@ -34,7 +81,9 @@ const ItemListTypeWork = (props) => {
       onLongPress={toggleModalDelete}
       onPress={toggleModalUpdate}
     >
-      <View style={{flexDirection: 'row'}}>
+      <SpinnerOverlay visible={loading} />
+
+      <View style={{ flexDirection: "row" }}>
         <Text style={styles.text}>{countdownIndex}.</Text>
         <Text style={styles.text}> {item.name}</Text>
       </View>
@@ -46,8 +95,9 @@ const ItemListTypeWork = (props) => {
             <TextInput
               label="Loại công việc"
               mode="outlined"
-              value={item.name}
+              value={name}
               style={styles.textInput}
+              onChangeText={(text) => setName(text)}
             />
           </View>
           <View style={styleModal.buttonModal}>
@@ -57,10 +107,7 @@ const ItemListTypeWork = (props) => {
             >
               <Text style={styleModal.textButton1}>Hủy</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              // onPress={updateService}
-              style={styleModal.button2}
-            >
+            <TouchableOpacity onPress={handleUpdate} style={styleModal.button2}>
               <Text style={styleModal.textButton2}>Cập nhật</Text>
             </TouchableOpacity>
           </View>

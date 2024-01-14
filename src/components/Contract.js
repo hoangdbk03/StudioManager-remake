@@ -211,8 +211,8 @@ const Contract = () => {
   const fetchDataClient = async () => {
     try {
       const response = await AxiosIntance().get("/client/list");
-      const apiData = response;
-      setDataClient(apiData);
+      const apiData = response.filter(client => client.disable === false);
+    setDataClient(apiData);
     } catch (error) {
       console.error("Lỗi khi lấy danh sách khách hàng ở hợp đồng", error);
     }

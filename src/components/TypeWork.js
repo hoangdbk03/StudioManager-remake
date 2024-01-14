@@ -12,10 +12,14 @@ import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import Modal from "react-native-modal";
 import { styleModal } from "../style/styleModal";
 import { TextInput } from "react-native-paper";
+import Toast from "react-native-toast-message";
+import SpinnerOverlay from "../items/SpinnerOverlay";
 
 const TypeWork = () => {
   const [dataTypeWork, setDataTypeWork] = useState([]);
   const [isVisibleModalCreate, setVisibleModalCreate] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [name, setName] = useState("");
 
   const toggleModalCreate = () => {
     setVisibleModalCreate(!isVisibleModalCreate);
@@ -32,18 +36,49 @@ const TypeWork = () => {
     }
   };
 
+  // TODO: tạo loại công việc
+  const handleCreacte = async () => {
+    setLoading(true);
+    try {
+      await AxiosIntance().post(`/work/create`, {
+        name: name,
+      });
+      toggleModalCreate();
+      Toast.show({
+        type: "success",
+        text1: "Thêm thành công",
+      });
+      fetchData();
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "Thêm thất bại",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
 
   return (
     <View style={styles.container}>
+      <SpinnerOverlay visible={loading} />
+
       <FlatList
         key={(dataTypeWork.length / 2).toString()}
         data={dataTypeWork}
         keyExtractor={(item) => item._id}
-        renderItem={({ item, index}) => (
-          <ItemListTypeWork item={item} index={index} totalItems={dataTypeWork.length}/>
+        renderItem={({ item, index }) => (
+          <ItemListTypeWork
+            item={item}
+            index={index}
+            onUpdate={fetchData}
+            onDelete={fetchData}
+            totalItems={dataTypeWork.length}
+          />
         )}
         numColumns={2}
       />
@@ -63,6 +98,7 @@ const TypeWork = () => {
               label="Loại công việc"
               mode="outlined"
               style={styles.textInput}
+              onChangeText={(text) => setName(text)}
             />
           </View>
           <View style={styleModal.buttonModal}>
@@ -73,7 +109,7 @@ const TypeWork = () => {
               <Text style={styleModal.textButton1}>Hủy</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              // onPress={updateService}
+              onPress={handleCreacte}
               style={styleModal.button2}
             >
               <Text style={styleModal.textButton2}>Thêm</Text>
