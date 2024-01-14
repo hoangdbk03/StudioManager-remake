@@ -11,7 +11,6 @@ import { format, parseISO } from "date-fns";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import AntDesign from "react-native-vector-icons/AntDesign";
 import Modal from "react-native-modal";
-import MapView, { Marker } from "react-native-maps";
 import { Table, Row, Rows } from "react-native-table-component";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
@@ -22,7 +21,6 @@ import { styleModal } from "../style/styleModal";
 import moment from "moment";
 import AxiosIntance from "../util/AxiosIntance";
 import Toast from "react-native-toast-message";
-import { ActivityIndicator } from "react-native";
 import SpinnerOverlay from "../items/SpinnerOverlay";
 
 const ItemListContract = (props) => {
@@ -110,6 +108,7 @@ const ItemListContract = (props) => {
     }
   };
 
+  // TODO: xử lý hủy hợp đồng
   const cancelContract = async () => {
     try {
       setLoading(true);
@@ -334,6 +333,7 @@ const ItemListContract = (props) => {
     }
   };
 
+  // TODO: xác nhận hủy hợp đồng
   const handleCancelContract = () => {
     if (item.status === "Chưa thanh toán") {
       Alert.alert("Thông báo", `Bạn chắc chắn muốn hủy hợp đồng này?`, [

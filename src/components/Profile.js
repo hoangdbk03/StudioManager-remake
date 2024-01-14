@@ -165,8 +165,8 @@ const Profile = ({ route }) => {
       <View style={styles.profile}>
         {/* thông tin tên email */}
         <View style={styles.infor}>
-          <Text style={styles.textName}>{data.name}</Text>
-          <Text style={styles.textEmail}>{data.email}</Text>
+          <Text style={styles.textName}>{inforUser.name}</Text>
+          <Text style={styles.textEmail}>{inforUser.email}</Text>
         </View>
 
         {/* các nút xử lý */}

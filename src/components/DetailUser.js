@@ -67,8 +67,8 @@ const DetailUser = () => {
       aspect: [4, 3],
       quality: 1,
     });
-
-    if (!result.canceled) {
+  
+    if (!result.canceled && result.assets.length > 0) {
       setImageUri(result.assets[0].uri);
       setDataUser({ ...dataUser, avatar: result.assets[0].uri });
       setSelectedItem((prevItem) => ({
@@ -161,7 +161,7 @@ const DetailUser = () => {
 
   return (
     <ScrollView style={{ backgroundColor: "white" }}>
-      <SpinnerOverlay visible={loading}/>
+      <SpinnerOverlay visible={loading} />
       <View style={styles.container}>
         <TouchableOpacity
           style={styles.frameAvatar}

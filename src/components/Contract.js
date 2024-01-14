@@ -29,6 +29,7 @@ import unorm from "unorm";
 const Contract = () => {
   const { inforUser } = useContext(AppConText);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setrefreshing] = useState(false);
   const [isModalCreateVisible, setModalCreateVisible] = useState(false);
   const [isWorkDatePickerVisible, setWorkDatePickerVisible] = useState(false);
   const [isDeliveryDatePickerVisible, setDeliveryDatePickerVisible] =
@@ -75,10 +76,6 @@ const Contract = () => {
   const [isDatePickerVisible, setDatePickerVisible] = useState(false);
 
   const onChangeSearch = (query) => setSearchQuery(query);
-
-  const handleSearch = (query) => {
-    setSearchQuery(query);
-  };
 
   const showDatePicker = () => {
     setDatePickerVisible(true);
@@ -412,7 +409,7 @@ const Contract = () => {
   // Chuẩn hóa chuỗi sang Unicode NFD
   const normalizedSearchQuery = unorm.nfkd(searchQuery.toLowerCase());
 
-  // Lọc dữ liệu dựa trên chuỗi tìm kiếm đã được chuẩn hóa
+  // tìm dữ liệu dựa trên chuỗi tìm kiếm đã được chuẩn hóa
   const filteredData = dataContract.filter((item) => {
     const normalizedDataName = unorm.nfkd(item.clientId.name.toLowerCase());
 
@@ -427,6 +424,23 @@ const Contract = () => {
 
     return normalizedDataName.includes(normalizedSearchQuery) || isDateMatch;
   });
+
+  // * xử lý load data khi kéo xuống
+  const handleRefreshData = async () => {
+    setrefreshing(true);
+    try {
+      await fetchDataContract(); // Chờ fetchData hoàn thành
+      // Hiển thị thông báo cập nhật thành công
+      Toast.show({
+        type: "success",
+        text1: "Cập nhật lại danh sách thành công",
+      });
+    } catch (error) {
+      console.log("Lỗi khi cập nhật", error);
+    } finally {
+      setrefreshing(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -443,7 +457,7 @@ const Contract = () => {
           onChangeText={onChangeSearch}
           value={searchQuery}
           style={{ borderRadius: 10, width: "82%" }}
-          icon={() => <IconButton icon="calendar" onPress={showDatePicker}/>}
+          icon={() => <IconButton icon="calendar" onPress={showDatePicker} />}
         />
         <DateTimePickerModal
           isVisible={isDatePickerVisible}
@@ -457,11 +471,7 @@ const Contract = () => {
         </TouchableOpacity>
       </View>
       <View style={{ height: 60 }}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.filterContainer}
-        >
+        <ScrollView horizontal style={styles.filterContainer}>
           <TouchableOpacity
             style={[
               styles.filterButton,
@@ -532,25 +542,60 @@ const Contract = () => {
       </View>
 
       {/* Danh sách hợp đồng */}
-      <FlatList
-        style={{ backgroundColor: "white", marginBottom: "21%" }}
-        data={
-          filterStatus === "Tất cả"
-            ? filteredData
-            : dataContract.filter(
-                (item) =>
-                  (filterStatus === "Chưa thanh toán" &&
-                    item.status === "Chưa thanh toán") ||
-                  (filterStatus === "Đã thanh toán" &&
-                    item.status === "Đã thanh toán") ||
-                  (filterStatus === "Đã hủy" && item.status === "Đã hủy")
-              )
-        }
-        keyExtractor={(item) => item._id}
-        renderItem={({ item }) => (
-          <ItemListContract item={item} onContractUpdated={onContractUpdated} />
-        )}
-      />
+      {filteredData.length > 0 ? (
+        <FlatList
+          refreshing={refreshing}
+          onRefresh={handleRefreshData}
+          style={{ backgroundColor: "white", marginBottom: "21%" }}
+          data={
+            filterStatus === "Tất cả"
+              ? filteredData
+              : dataContract.filter(
+                  (item) =>
+                    (filterStatus === "Chưa thanh toán" &&
+                      item.status === "Chưa thanh toán") ||
+                    (filterStatus === "Đã thanh toán" &&
+                      item.status === "Đã thanh toán") ||
+                    (filterStatus === "Đã hủy" && item.status === "Đã hủy")
+                )
+          }
+          keyExtractor={(item) => item._id}
+          renderItem={({ item }) => (
+            <ItemListContract
+              item={item}
+              onContractUpdated={onContractUpdated}
+            />
+          )}
+        />
+      ) : (
+        <View
+          style={{
+            justifyContent: "center",
+            alignItems: "center",
+            flex: 1,
+            marginBottom: "21%"
+          }}
+        >
+          <View
+            style={{
+              width: 150,
+              height: 150,
+              backgroundColor: "#e7eef6",
+              borderRadius: 300,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Image
+              style={{ width: 60, height: 60, tintColor: "#b4cae4" }}
+              source={require("../img/taskList.png")}
+            />
+          </View>
+          <Text style={{ color: "#545454", marginTop: 10 }}>
+            Không có hợp đồng nào
+          </Text>
+        </View>
+      )}
 
       {/* Modal tạo hợp đồng */}
       <Modal isVisible={isModalCreateVisible}>

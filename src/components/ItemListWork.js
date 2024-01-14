@@ -1,5 +1,5 @@
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import React from "react";
+import React, { useEffect } from "react";
 import AxiosIntance from "../util/AxiosIntance";
 import moment from "moment";
 import Modal from "react-native-modal";
@@ -7,28 +7,93 @@ import { useState } from "react";
 import { styleModal } from "../style/styleModal";
 import { TextInput } from "react-native-paper";
 import { Alert } from "react-native";
+import Toast from "react-native-toast-message";
+import SpinnerOverlay from "../items/SpinnerOverlay";
 
 const ItemListWork = (props) => {
-  const { item } = props;
-
+  const { item, onDelete, onUpdate } = props;
+  const [loading, setLoading] = useState(false);
+  const [address, setAddress] = useState(item.address || "");
+  const [note, setNote] = useState(item.note || "");
   const [isVisibleModalUpdates, setVisibleModalUpdates] = useState(false);
 
   const toggleModalUpdates = () => {
     setVisibleModalUpdates(!isVisibleModalUpdates);
+    setAddress(item.address);
+    setNote(item.note);
   };
 
-  const handleDelete = () =>{
-    Alert.alert("Xác nhận xóa", `Bạn chắc chắn muốn xóa công việc ${item.workType_ID.name}?`, [
-      {
-        text: "Hủy",
-        style: "cancel",
-      },
-      {
-        text: "Xóa",
-        onPress: () => {},
-      },
-    ]);
-  }
+  // TODO: xử lý xóa công việc
+  const deleteWork = async () => {
+    setLoading(true);
+    try {
+      await AxiosIntance().delete(`/work/delete-work/${item._id}`);
+      Toast.show({
+        type: "success",
+        text1: "Xóa thành công",
+      });
+      setLoading(false);
+    } catch (error) {
+      console.log("Xóa công việc thất bại", error);
+      Toast.show({
+        type: "error",
+        text1: "Xóa thất bại",
+      });
+    }
+  };
+  // xác nhận xóa
+  const handleDelete = () => {
+    Alert.alert(
+      "Xác nhận xóa",
+      `Bạn chắc chắn muốn xóa công việc ${item.workType_ID.name} của nhân viên ${item.user_ID.name}?`,
+      [
+        {
+          text: "Hủy",
+          style: "cancel",
+        },
+        {
+          text: "Xóa",
+          onPress: () => {
+            deleteWork(), onDelete();
+          },
+        },
+      ]
+    );
+  };
+
+  // TODO: xử lý cập nhật công việc
+  const handleUpdateWork = async () => {
+    setLoading(true);
+    try {
+      const data = {
+        address: address,
+        note: note,
+      };
+      if (address !== item.address || note !== item.note) {
+        if (!address) {
+          Alert.alert("Thông báo", "Vui lòng nhập địa chỉ làm việc!");
+          return;
+        }
+        await AxiosIntance().put(`/work/update-work/${item._id}`, data);
+        Toast.show({
+          type: "success",
+          text1: "Cập nhật công việc thành công",
+        });
+        
+        setLoading(false);
+        toggleModalUpdates();
+        onUpdate();
+      } else {
+        Alert.alert("Thông báo", "Không có dữ liệu cần thay đổi");
+      }
+    } catch (error) {
+      console.log("Cập nhật công việc thất bại", error);
+      Toast.show({
+        type: "error",
+        text1: "Xóa thất bại",
+      });
+    }
+  };
 
   // Format lại giờ từ UTC
   const formattedDate = moment(item.workDate)
@@ -44,6 +109,8 @@ const ItemListWork = (props) => {
       onPress={toggleModalUpdates}
       onLongPress={handleDelete}
     >
+      <SpinnerOverlay visible={loading} />
+
       <View style={styles.cardContainer}>
         <View style={styles.header}>
           <Text style={styles.title}>{item.workType_ID.name}</Text>
@@ -54,7 +121,7 @@ const ItemListWork = (props) => {
         </Text>
         <Text style={styles.subtitle}>Thời gian làm việc: {formattedDate}</Text>
         <Text style={styles.subtitle}>Địa điểm làm việc: {item.address}</Text>
-        <Text style={styles.subtitle}>Ghi chú: {item.note}</Text>
+        <Text style={styles.subtitle}>Ghi chú: {item.note || "Không"}</Text>
         <Text style={[styles.status, { backgroundColor: statusColor }]}>
           {item.status}
         </Text>
@@ -70,7 +137,7 @@ const ItemListWork = (props) => {
               mode="outlined"
               value={item.workType_ID.name}
               style={styles.textInput}
-              contentStyle={{color: "gray"}}
+              contentStyle={{ color: "gray" }}
               editable={false}
             />
             <TextInput
@@ -78,7 +145,7 @@ const ItemListWork = (props) => {
               mode="outlined"
               value={item.user_ID.name}
               style={styles.textInput}
-              contentStyle={{color: "gray"}}
+              contentStyle={{ color: "gray" }}
               editable={false}
             />
             <TextInput
@@ -86,18 +153,23 @@ const ItemListWork = (props) => {
               mode="outlined"
               value={formattedDate}
               style={styles.textInput}
+              editable={false}
+              contentStyle={{ color: "gray" }}
             />
+
             <TextInput
               label="Địa điểm làm việc"
               mode="outlined"
-              value={item.address}
+              value={address}
               style={styles.textInput}
+              onChangeText={(text) => setAddress(text)}
             />
             <TextInput
               label="Ghi chú"
               mode="outlined"
-              value={item.note}
+              value={note}
               style={styles.textInput}
+              onChangeText={(text) => setNote(text)}
             />
           </View>
           <View style={styleModal.buttonModal}>
@@ -108,7 +180,7 @@ const ItemListWork = (props) => {
               <Text style={styleModal.textButton1}>Hủy</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              // onPress={updateService}
+              onPress={handleUpdateWork}
               style={styleModal.button2}
             >
               <Text style={styleModal.textButton2}>Cập nhật</Text>
@@ -116,7 +188,6 @@ const ItemListWork = (props) => {
           </View>
         </View>
       </Modal>
-      
     </TouchableOpacity>
   );
 };

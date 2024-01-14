@@ -6,15 +6,40 @@ import { useState } from "react";
 import { IconButton, Searchbar } from "react-native-paper";
 import { AppConText } from "../util/AppContext";
 import ItemListWorkStaff from "./ItemListWorkStaff";
+import unorm from "unorm";
+import { format, isValid, parseISO } from "date-fns";
+import { Image } from "react-native";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 const WorkStaff = () => {
   const [dataWork, setDataWork] = useState([]);
-  const {inforUser} = useContext(AppConText);
+  const { inforUser } = useContext(AppConText);
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const onChangeSearch = (query) => setSearchQuery(query);
+
+  // * mở lịch chọn
+  const showDatePicker = () => {
+    setDatePickerVisibility(true);
+  };
+  const hideDatePicker = () => {
+    setDatePickerVisibility(false);
+  };
+
+  // ! lịch chọn thời gian để tìm kiếm
+  const handleConfirmFindDate = (date) => {
+    hideDatePicker();
+    const formattedDate = format(date, "dd/MM/yyyy");
+    setSearchQuery(formattedDate);
+  };
 
   // TODO: lấy danh sách công việc
   const fetchData = async () => {
     try {
-      const response = await AxiosIntance().get(`/work/user-work/${inforUser._id}`);
+      const response = await AxiosIntance().get(
+        `/work/user-work/${inforUser._id}`
+      );
       const apiData = response;
       setDataWork(apiData);
     } catch (error) {
@@ -25,6 +50,32 @@ const WorkStaff = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Chuẩn hóa chuỗi sang Unicode NFD
+  const normalizedSearchQuery = unorm.nfkd(searchQuery.toLowerCase());
+
+  // Lọc dữ liệu dựa trên chuỗi tìm kiếm đã được chuẩn hóa
+  const filteredData = dataWork.filter((item) => {
+    const normalizedDataNameWork = unorm.nfkd(
+      item.workType_ID.name.toLowerCase()
+    );
+    const normalizedDataName = unorm.nfkd(item.user_ID.name.toLowerCase());
+
+    // Chuyển đổi chuỗi ngày thành đối tượng ngày
+    const contractDate = parseISO(item.workDate);
+
+    // Kiểm tra nếu ngày ký hợp đồng hợp lệ và có chứa chuỗi tìm kiếm
+    const isDateValid = isValid(contractDate);
+    const isDateMatch =
+      isDateValid &&
+      format(contractDate, "dd/MM/yyyy").includes(normalizedSearchQuery);
+
+    return (
+      normalizedDataName.includes(normalizedSearchQuery) ||
+      normalizedDataNameWork.includes(normalizedSearchQuery) ||
+      isDateMatch
+    );
+  });
 
   return (
     <View style={styles.container}>
@@ -38,20 +89,56 @@ const WorkStaff = () => {
       >
         <Searchbar
           placeholder="Tìm kiếm"
-          // onChangeText={onChangeSearch}
-          // value={searchQuery}
+          onChangeText={onChangeSearch}
+          value={searchQuery}
           style={{ borderRadius: 10, width: "100%" }}
-          icon={() => <IconButton icon="calendar" />}
+          icon={() => <IconButton icon="calendar" onPress={showDatePicker} />}
+        />
+
+        <DateTimePickerModal
+          isVisible={isDatePickerVisible}
+          mode="date"
+          onConfirm={handleConfirmFindDate}
+          onCancel={hideDatePicker}
         />
       </View>
 
-      <FlatList
-        data={dataWork}
-        keyExtractor={(item) => item._id}
-        renderItem={({ item }) => <ItemListWorkStaff item={item} />}
-        style={{ marginBottom: "21%" }}
-      />
-
+      {filteredData.length > 0 ? (
+        <FlatList
+          data={filteredData}
+          keyExtractor={(item) => item._id}
+          renderItem={({ item }) => <ItemListWorkStaff item={item} onUpdate={fetchData} />}
+          style={{ marginBottom: "21%" }}
+        />
+      ) : (
+        <View
+          style={{
+            justifyContent: "center",
+            alignItems: "center",
+            flex: 1,
+            marginBottom: "21%",
+          }}
+        >
+          <View
+            style={{
+              width: 150,
+              height: 150,
+              backgroundColor: "#e7eef6",
+              borderRadius: 300,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Image
+              style={{ width: 60, height: 60, tintColor: "#b4cae4" }}
+              source={require("../img/taskList.png")}
+            />
+          </View>
+          <Text style={{ color: "#545454", marginTop: 10 }}>
+            Không có công việc nào
+          </Text>
+        </View>
+      )}
     </View>
   );
 };

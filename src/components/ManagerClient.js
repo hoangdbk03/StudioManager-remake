@@ -66,11 +66,6 @@ const ManagerClient = () => {
     phone2: "",
   });
 
-  // xử lý tìm kiếm
-  const handleSearch = (query) => {
-    setSearchQuery(query);
-  };
-
   //ẩn modal
   const toggleAddModal = () => {
     setAddModalVisible(!isAddModalVisible);
@@ -96,13 +91,20 @@ const ManagerClient = () => {
     }
   };
   // load lại data
-  const handleRefreshData = () => {
+  const handleRefreshData = async() => {
     setrefreshing(true);
-    fetchData();
-    Toast.show({
-      type: "success",
-      text1: "Cập nhật thành công",
-    });
+    try {
+      await fetchData(); // Chờ fetchData hoàn thành
+      // Hiển thị thông báo cập nhật thành công
+      Toast.show({
+        type: "success",
+        text1: "Cập nhật lại danh sách thành công",
+      });
+    } catch (error) {
+      console.log("Lỗi khi cập nhật", error);
+    } finally {
+      setrefreshing(false);
+    }
   };
 
   // xử lý thêm dữ liệu

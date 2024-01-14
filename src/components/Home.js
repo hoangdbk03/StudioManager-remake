@@ -23,7 +23,6 @@ import React, {
 import { AppConText } from "../util/AppContext";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import Client from "./ManagerClient";
-import Bill from "../components/Bill";
 import { vi } from "date-fns/locale";
 import "intl";
 import "intl/locale-data/jsonp/vi";
@@ -154,53 +153,86 @@ const Home = () => {
             Công việc hôm nay
           </Text>
         </View>
-        {dataWorkByDate.length > 0 ? (
-          <View>
-            {inforUser.role === "Quản lý" ? (
-              <FlatList
-                style={styles.body_list}
-                data={dataWorkByDate}
-                keyExtractor={(item) => item._id}
-                renderItem={({ item }) => <ItemListWorkByDate item={item} />}
-              />
-            ) : (
-              <FlatList
-                data={dataWorkOfStaffByDate}
-                keyExtractor={(item) => item._id}
-                renderItem={({ item }) => (
-                  <ItemListWorkOfStaffByDate item={item} />
-                )}
-              />
-            )}
-          </View>
-        ) : (
-          <View
-            style={{
-              justifyContent: "center",
-              alignItems: "center",
-              marginTop: 100,
-            }}
-          >
-            <View
-              style={{
-                width: 150,
-                height: 150,
-                backgroundColor: "#e7eef6",
-                borderRadius: 300,
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              <Image
-                style={{ width: 60, height: 60, tintColor: "#b4cae4" }}
-                source={require("../img/taskList.png")}
-              />
-            </View>
-            <Text style={{ color: "#545454", marginTop: 10 }}>
-              Hôm nay chưa có công việc
-            </Text>
-          </View>
-        )}
+        <View>
+          {inforUser.role === "Quản lý" ? (
+            <>
+              {dataWorkByDate.length > 0 ? (
+                <FlatList
+                  style={styles.body_list}
+                  data={dataWorkByDate}
+                  keyExtractor={(item) => item._id}
+                  renderItem={({ item }) => <ItemListWorkByDate item={item} />}
+                />
+              ) : (
+                <View
+                  style={{
+                    justifyContent: "center",
+                    alignItems: "center",
+                    marginTop: 100,
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 150,
+                      height: 150,
+                      backgroundColor: "#e7eef6",
+                      borderRadius: 300,
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Image
+                      style={{ width: 60, height: 60, tintColor: "#b4cae4" }}
+                      source={require("../img/taskList.png")}
+                    />
+                  </View>
+                  <Text style={{ color: "#545454", marginTop: 10 }}>
+                    Hôm nay chưa có công việc
+                  </Text>
+                </View>
+              )}
+            </>
+          ) : (
+            <>
+              {dataWorkOfStaffByDate.length > 0 ? (
+                <FlatList
+                  data={dataWorkOfStaffByDate}
+                  keyExtractor={(item) => item._id}
+                  renderItem={({ item }) => (
+                    <ItemListWorkOfStaffByDate item={item} />
+                  )}
+                />
+              ) : (
+                <View
+                  style={{
+                    justifyContent: "center",
+                    alignItems: "center",
+                    marginTop: 100,
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 150,
+                      height: 150,
+                      backgroundColor: "#e7eef6",
+                      borderRadius: 300,
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Image
+                      style={{ width: 60, height: 60, tintColor: "#b4cae4" }}
+                      source={require("../img/taskList.png")}
+                    />
+                  </View>
+                  <Text style={{ color: "#545454", marginTop: 10 }}>
+                    Hôm nay chưa có công việc
+                  </Text>
+                </View>
+              )}
+            </>
+          )}
+        </View>
       </View>
 
       {/* khung button nhân viên và gói chụp */}
