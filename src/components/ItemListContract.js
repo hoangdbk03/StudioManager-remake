@@ -28,6 +28,11 @@ const ItemListContract = (props) => {
   const { inforUser } = useContext(AppConText);
   const [loading, setLoading] = useState(false);
 
+  const formattedWorkDate = item.workDate
+  ? moment(item.workDate).utc().format("HH:mm DD/MM/yyyy")
+  : null;
+
+
   const [isVisibleModalDetails, setVisibleModalDetails] = useState(false);
   const [isVisibleModalUpdates, setVisibleModalUpdates] = useState(false);
 
@@ -600,7 +605,7 @@ const ItemListContract = (props) => {
                   ],
                   [
                     <Text style={styles.boldText}>Ngày hẹn chụp ảnh</Text>,
-                    moment(item.workDate).format("DD/MM/yyyy"),
+                    formattedWorkDate,
                   ],
                   [
                     <Text style={styles.boldText}>Ngày trả ảnh</Text>,
