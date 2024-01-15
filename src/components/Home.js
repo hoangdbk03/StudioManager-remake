@@ -99,8 +99,11 @@ const Home = () => {
 
   useEffect(() => {
     fetchDataWorkByDate();
-    fetchDataWorkStaffByDate();
   }, []);
+
+  useEffect(() => {
+    fetchDataWorkStaffByDate();
+  });
 
   return (
     <SafeAreaProvider style={styles.container}>
@@ -448,7 +451,7 @@ const styles = StyleSheet.create({
     marginTop: -55,
   },
   body_list: {
-    marginBottom: "21%",
+    height: "65%",
   },
   textButton: {
     color: "white",

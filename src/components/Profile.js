@@ -64,6 +64,7 @@ const Profile = ({ route }) => {
           text1: "ĐĂNG XUẤT THÀNH CÔNG",
         });
         setisLogin(false);
+        setData({});
         await AsyncStorage.removeItem("emailUser");
         await AsyncStorage.removeItem("passwordUser");
         await AsyncStorage.removeItem("rememberCredentials");

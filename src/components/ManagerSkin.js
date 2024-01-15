@@ -538,7 +538,7 @@ const ManagerService = () => {
                 value={selectedItemForModal.name}
                 editable={false}
                 mode="outlined"
-                label="Tên dịch vụ"
+                label="Tên"
               />
               {inforUser.role === "Nhân viên" ? null : (
                 <TextInput

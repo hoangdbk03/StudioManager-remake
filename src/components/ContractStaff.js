@@ -69,7 +69,7 @@ const ContractStaff = () => {
     const normalizedDataName = unorm.nfkd(item.clientId.name.toLowerCase());
 
     // Chuyển đổi chuỗi ngày thành đối tượng ngày
-    const contractDate = parseISO(item.signingDate);
+    const contractDate = parseISO(item.workDate);
 
     // Kiểm tra nếu ngày ký hợp đồng hợp lệ và có chứa chuỗi tìm kiếm
     const isDateValid = isValid(contractDate);
